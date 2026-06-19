@@ -2,62 +2,74 @@ class MrzParser {
   /// Parses MRZ text and returns a map with documentNumber, dateOfBirth, and dateOfExpiry.
   /// Returns null if parsing fails or checksums are invalid.
   static Map<String, String>? parse(String mrzText) {
-    // Remove all spaces and newlines
     final cleanMrz = mrzText.replaceAll(RegExp(r'\s+'), '');
     
     if (cleanMrz.length < 88) { // TD1 size is 90, TD3 size is 88 (44x2)
       return null;
     }
     
-    // Simple extraction for TD3 format (Passport) as an example
-    // Line 1: 44 chars (Type, Country, Name)
-    // Line 2: 44 chars (DocNum, Nationality, DOB, Sex, DOE, PersonalNum)
+    return _parseTD3(cleanMrz);
+  }
+
+  static Map<String, String>? _parseTD3(String mrz) {
+    // Break down the regex for better readability. 
+    // We allow 'O' in place of '0' to handle common OCR mistakes in number fields.
+    const docNumPattern      = r'([A-Z0-9<]{9})';
+    const checkDigitPattern  = r'([0-9O])';
+    const nationalityPattern = r'([A-Z<]{3})';
+    const datePattern        = r'([0-9O]{6})';
+    const sexPattern         = r'[MF<]';
     
-    // Find the start of the second line which contains the data we need
-    // It typically starts with the passport number
+    final regexStr = 
+        '$docNumPattern'
+        '$checkDigitPattern'
+        '$nationalityPattern'
+        '$datePattern'
+        '$checkDigitPattern'
+        '$sexPattern'
+        '$datePattern'
+        '$checkDigitPattern';
+        
+    final match = RegExp(regexStr).firstMatch(mrz);
+    if (match == null) return null;
+
+    final rawDocNum   = match.group(1)!;
+    final docNumCheck = _sanitizeNumber(match.group(2)!);
+    final dob         = _sanitizeNumber(match.group(4)!);
+    final dobCheck    = _sanitizeNumber(match.group(5)!);
+    final doe         = _sanitizeNumber(match.group(6)!);
+    final doeCheck    = _sanitizeNumber(match.group(7)!);
+
+    final validDocNum = _getValidDocNum(rawDocNum, docNumCheck);
     
-    // A robust MRZ parser needs to handle different formats (TD1, TD2, TD3).
-    // For this example, we assume TD3 where the second line contains:
-    // DocNum (9 chars) + Checksum (1) + Nationality (3) + DOB (6) + Checksum (1) + Sex (1) + DOE (6) + Checksum (1)
+    if (validDocNum != null &&
+        _validateChecksum(dob, dobCheck) &&
+        _validateChecksum(doe, doeCheck)) {
+      return {
+        'documentNumber': validDocNum.replaceAll('<', ''),
+        'dateOfBirth': dob,
+        'dateOfExpiry': doe,
+      };
+    }
     
-    // Allow 'O' in place of '0' to handle common OCR mistakes in number fields
-    final RegExp td3Line2Regex = RegExp(r'([A-Z0-9<]{9})([0-9O])([A-Z<]{3})([0-9O]{6})([0-9O])[MF<]([0-9O]{6})([0-9O])');
+    return null;
+  }
+  
+  /// Helper to fix common OCR number mistakes (e.g. 'O' instead of '0')
+  static String _sanitizeNumber(String input) {
+    return input.replaceAll('O', '0');
+  }
+
+  /// Document number might genuinely contain letters, but OCR often mistakes '0' for 'O'.
+  /// Try raw first, fallback to sanitized if checksum fails.
+  static String? _getValidDocNum(String docNum, String checkDigit) {
+    if (_validateChecksum(docNum, checkDigit)) {
+      return docNum;
+    }
     
-    final match = td3Line2Regex.firstMatch(cleanMrz);
-    
-    if (match != null) {
-      // Helper to fix common OCR number mistakes
-      String sanitizeNumber(String input) => input.replaceAll('O', '0');
-      
-      String rawDocNum = match.group(1)!;
-      String docNumCheck = sanitizeNumber(match.group(2)!);
-      String dob = sanitizeNumber(match.group(4)!);
-      String dobCheck = sanitizeNumber(match.group(5)!);
-      String doe = sanitizeNumber(match.group(6)!);
-      String doeCheck = sanitizeNumber(match.group(7)!);
-      
-      // Document number might genuinely contain letters, but OCR often mistakes '0' for 'O'.
-      // Try raw first, fallback to sanitized if checksum fails.
-      bool docNumValid = _validateChecksum(rawDocNum, docNumCheck);
-      String finalDocNum = rawDocNum;
-      
-      if (!docNumValid) {
-        final sanitizedDocNum = sanitizeNumber(rawDocNum);
-        if (_validateChecksum(sanitizedDocNum, docNumCheck)) {
-          docNumValid = true;
-          finalDocNum = sanitizedDocNum;
-        }
-      }
-      
-      if (docNumValid &&
-          _validateChecksum(dob, dobCheck) &&
-          _validateChecksum(doe, doeCheck)) {
-        return {
-          'documentNumber': finalDocNum.replaceAll('<', ''),
-          'dateOfBirth': dob,
-          'dateOfExpiry': doe,
-        };
-      }
+    final sanitizedDocNum = _sanitizeNumber(docNum);
+    if (_validateChecksum(sanitizedDocNum, checkDigit)) {
+      return sanitizedDocNum;
     }
     
     return null;
