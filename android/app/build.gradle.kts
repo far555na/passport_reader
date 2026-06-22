@@ -43,3 +43,7 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation("dev.keiji.jp2:jp2-android:1.0.5")
+}

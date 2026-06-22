@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:dmrtd/dmrtd.dart';
 import 'mrz_result.dart';
+import 'utils/image_decoder.dart';
 
 class NfcScannerScreen extends StatefulWidget {
   final MrzResult mrzResult;
@@ -122,6 +123,10 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
       
       // Extract the face image bytes from DG2
       Uint8List? extractedImage = dg2.imageData;
+      
+      if (extractedImage != null) {
+        extractedImage = await ImageDecoder.decodeImage(extractedImage);
+      }
       
       setState(() {
         _statusMessage = 'Done!';
