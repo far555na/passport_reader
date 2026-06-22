@@ -1,4 +1,4 @@
-import 'mrz_result.dart';
+import '../models/mrz_result.dart';
 
 /// Parses Machine Readable Zone (MRZ) text from OCR output.
 ///

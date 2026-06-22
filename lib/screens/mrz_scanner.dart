@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'mrz_parser.dart';
-import 'mrz_result.dart';
+import '../services/mrz_parser.dart';
+import '../models/mrz_result.dart';
 
 class MrzScannerScreen extends StatefulWidget {
   final Function(MrzResult) onParsed;
