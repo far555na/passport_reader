@@ -1,46 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'mrz_scanner.dart';
 import 'nfc_scanner.dart';
-import '../models/mrz_result.dart';
+import '../providers/mrz_provider.dart';
 import '../widgets/mrz_details_card.dart';
 import '../widgets/manual_entry_dialog.dart';
 
-class AuthenticationScreen extends StatefulWidget {
+class AuthenticationScreen extends ConsumerWidget {
   const AuthenticationScreen({super.key});
 
-  @override
-  State<AuthenticationScreen> createState() => _AuthenticationScreenState();
-}
-
-class _AuthenticationScreenState extends State<AuthenticationScreen> {
-  MrzResult? _mrzData;
-
-  void _startNfcReading() {
+  void _startNfcReading(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NfcScannerScreen(
-          mrzResult: _mrzData!,
-        ),
+        builder: (context) => const NfcScannerScreen(),
       ),
     );
   }
 
-  void _showManualEntryDialog() {
+  void _showManualEntryDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => ManualEntryDialog(
         onSubmit: (mrzData) {
-          setState(() {
-            _mrzData = mrzData;
-          });
+          ref.read(mrzProvider.notifier).setMrz(mrzData);
         },
       ),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mrzData = ref.watch(mrzProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('ePassport Authentication')),
       body: SingleChildScrollView(
@@ -49,15 +41,15 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (_mrzData != null) ...[
+              if (mrzData != null) ...[
                 const Icon(Icons.check_circle, color: Colors.green, size: 64),
                 const SizedBox(height: 16),
                 const Text('MRZ Data Extracted', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                MrzDetailsCard(mrz: _mrzData!),
+                MrzDetailsCard(mrz: mrzData),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: _startNfcReading,
+                  onPressed: () => _startNfcReading(context),
                   icon: const Icon(Icons.nfc),
                   label: const Text('Read Passport via NFC'),
                 ),
@@ -71,20 +63,18 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
                       builder: (context) => MrzScannerScreen(
                         onParsed: (data) {
                           Navigator.pop(context);
-                          setState(() {
-                            _mrzData = data;
-                          });
+                          ref.read(mrzProvider.notifier).setMrz(data);
                         },
                         onManualEntry: () {
                           Navigator.pop(context);
-                          _showManualEntryDialog();
+                          _showManualEntryDialog(context, ref);
                         },
                       ),
                     ),
                   );
                 },
                 icon: const Icon(Icons.camera_alt),
-                label: Text(_mrzData == null ? 'Scan MRZ' : 'Rescan MRZ'),
+                label: Text(mrzData == null ? 'Scan MRZ' : 'Rescan MRZ'),
               ),
             ],
           ),

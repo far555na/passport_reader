@@ -1,74 +1,55 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:dmrtd/dmrtd.dart';
-import '../models/mrz_result.dart';
-import '../services/nfc_service.dart';
-import '../services/passive_authenticator.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/nfc_provider.dart';
+import '../providers/mrz_provider.dart';
 import '../widgets/passport_details_card.dart';
 import '../widgets/data_match_card.dart';
 import '../widgets/chip_technical_details_card.dart';
 
-class NfcScannerScreen extends StatefulWidget {
-  final MrzResult mrzResult;
-
-  const NfcScannerScreen({super.key, required this.mrzResult});
+class NfcScannerScreen extends ConsumerStatefulWidget {
+  const NfcScannerScreen({super.key});
 
   @override
-  State<NfcScannerScreen> createState() => _NfcScannerScreenState();
+  ConsumerState<NfcScannerScreen> createState() => _NfcScannerScreenState();
 }
 
-class _NfcScannerScreenState extends State<NfcScannerScreen> {
-  String _statusMessage = 'Hold your phone against the passport chip.';
-  double _progress = 0.0;
-  bool _isScanning = false;
-  
-  Uint8List? _faceImage;
-  EfDG1? _dg1;
-  EfDG2? _dg2;
-  PassiveAuthVerificationResult? _paResult;
-  final NfcService _nfcService = NfcService();
-
+class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
   @override
   void initState() {
     super.initState();
-    _startNfcScan();
+    // Start scan on initialization
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final mrzResult = ref.read(mrzProvider);
+      if (mrzResult != null) {
+        ref.read(nfcProvider.notifier).startScan(mrzResult);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error: No MRZ data available')),
+        );
+        Navigator.pop(context);
+      }
+    });
   }
 
-  Future<void> _startNfcScan() async {
-    setState(() {
-      _isScanning = true;
-    });
-
-    try {
-      final nfcData = await _nfcService.scanPassport(
-        mrzResult: widget.mrzResult,
-        onProgress: (status, progress) {
-          setState(() {
-            _statusMessage = status;
-            _progress = progress;
-          });
-        },
-      );
-      
-      setState(() {
-        _isScanning = false;
-        _faceImage = nfcData.faceImage;
-        _dg1 = nfcData.dg1;
-        _dg2 = nfcData.dg2;
-        _paResult = nfcData.paResult;
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Error: $e';
-        _isScanning = false;
-        _progress = 0.0;
-      });
-    }
+  @override
+  void dispose() {
+    // Reset provider state when leaving the screen if needed, 
+    // or you can leave the data cached if you want it to persist.
+    // For now, we'll let it stay. If you want to reset:
+    // ref.read(nfcProvider.notifier).reset();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_isScanning && _progress == 1.0) {
+    final nfcState = ref.watch(nfcProvider);
+    final mrzResult = ref.read(mrzProvider);
+
+    if (mrzResult == null) {
+      return const Scaffold(body: Center(child: Text('Error: MRZ Data missing')));
+    }
+
+    if (!nfcState.isScanning && nfcState.progress == 1.0) {
       return Scaffold(
         appBar: AppBar(title: const Text('Verified Passport Data')),
         body: SingleChildScrollView(
@@ -77,19 +58,19 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               PassportDetailsCard(
-                mrzResult: widget.mrzResult,
-                faceImage: _faceImage,
-                dg1: _dg1,
+                mrzResult: mrzResult,
+                faceImage: nfcState.faceImage,
+                dg1: nfcState.dg1,
               ),
               const SizedBox(height: 24),
               DataMatchCard(
-                mrzResult: widget.mrzResult,
-                dg1: _dg1,
+                mrzResult: mrzResult,
+                dg1: nfcState.dg1,
               ),
               const SizedBox(height: 24),
               ChipTechnicalDetailsCard(
-                dg2: _dg2,
-                paResult: _paResult,
+                dg2: nfcState.dg2,
+                paResult: nfcState.paResult,
               ),
               const SizedBox(height: 32),
               ElevatedButton(
@@ -116,17 +97,17 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
               Icon(
                 Icons.nfc,
                 size: 100,
-                color: _isScanning ? Colors.blue : Colors.grey,
+                color: nfcState.isScanning ? Colors.blue : Colors.grey,
               ),
               const SizedBox(height: 32),
               Text(
-                _statusMessage,
+                nfcState.statusMessage,
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 18),
               ),
               const SizedBox(height: 24),
-              if (_isScanning)
-                LinearProgressIndicator(value: _progress),
+              if (nfcState.isScanning)
+                LinearProgressIndicator(value: nfcState.progress),
             ],
           ),
         ),

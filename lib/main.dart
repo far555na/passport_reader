@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/authentication_screen.dart';
 
 void main() {
-  runApp(const PassportReaderApp());
+  runApp(const ProviderScope(child: PassportReaderApp()));
 }
 
 class PassportReaderApp extends StatelessWidget {
