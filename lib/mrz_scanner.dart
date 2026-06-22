@@ -10,13 +10,13 @@ class MrzScannerScreen extends StatefulWidget {
   final VoidCallback onManualEntry;
 
   const MrzScannerScreen({
-    Key? key,
+    super.key,
     required this.onParsed,
     required this.onManualEntry,
-  }) : super(key: key);
+  });
 
   @override
-  _MrzScannerScreenState createState() => _MrzScannerScreenState();
+  State<MrzScannerScreen> createState() => _MrzScannerScreenState();
 }
 
 class _MrzScannerScreenState extends State<MrzScannerScreen> {

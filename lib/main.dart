@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'mrz_scanner.dart';
+import 'nfc_scanner.dart';
 import 'mrz_result.dart';
 
 void main() {
@@ -33,27 +34,12 @@ class _AuthenticationScreenState extends State<AuthenticationScreen> {
   MrzResult? _mrzData;
 
   void _startNfcReading() {
-    // This is where dmrtd NFC session establishment would go.
-    // Example:
-    // final String docNum = _mrzData!.documentNumber;
-    // final String dob = _mrzData!.dateOfBirth;
-    // final String doe = _mrzData!.dateOfExpiry;
-    // await establishSecureSession(docNum, dob, doe);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('NFC Reading'),
-        content: Text('Starting BAC/PACE session with:\n\n'
-            'DocNum: ${_mrzData!.documentNumber}\n'
-            'DOB: ${_mrzData!.dateOfBirth}\n'
-            'DOE: ${_mrzData!.dateOfExpiry}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          )
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NfcScannerScreen(
+          mrzResult: _mrzData!,
+        ),
       ),
     );
   }
