@@ -157,6 +157,33 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isScanning && _progress == 1.0) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Verified Passport Data')),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildPassportCard(),
+              const SizedBox(height: 24),
+              _buildDataMatchVerification(),
+              const SizedBox(height: 24),
+              _buildChipTechnicalDetails(),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Done', style: TextStyle(fontSize: 18)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('NFC Passport Scan')),
       body: Center(
@@ -179,39 +206,276 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
               const SizedBox(height: 24),
               if (_isScanning)
                 LinearProgressIndicator(value: _progress),
-              if (!_isScanning && _progress == 1.0) ...[
-                const Icon(Icons.check_circle, color: Colors.green, size: 64),
-                const SizedBox(height: 16),
-                const Text('Passport Read Successfully!', style: TextStyle(fontWeight: FontWeight.bold)),
-                if (_faceImage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: Image.memory(_faceImage!, height: 200),
-                  ),
-                const SizedBox(height: 16),
-                if (_dg1 != null) ...[
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.badge),
-                    title: const Text('DG1 (MRZ Data)'),
-                    subtitle: Text('Doc No: ${_dg1!.mrz.documentNumber}\nDOB: ${_dg1!.mrz.dateOfBirth}, DOE: ${_dg1!.mrz.dateOfExpiry}'),
-                  ),
-                ],
-                if (_dg2 != null)
-                  ListTile(
-                    leading: const Icon(Icons.face),
-                    title: const Text('DG2 (Biometric Data)'),
-                    subtitle: Text('Facial Image: ${_dg2!.imageWidth}x${_dg2!.imageHeight}\nGender: ${_dg2!.gender}, Eye Color: ${_dg2!.eyeColor}'),
-                  ),
-                if (_sod != null)
-                  ListTile(
-                    leading: const Icon(Icons.security),
-                    title: const Text('SOD (Security Object Document)'),
-                    subtitle: Text('Read successfully (${_sod!.toBytes().length} bytes)'),
-                  ),
-              ]
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPassportCard() {
+    final mrz = widget.mrzResult;
+    
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Icon(Icons.public, color: Colors.blue, size: 32),
+                Text(
+                  'ePASSPORT',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                    color: Colors.blue.shade900,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24, thickness: 2),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Face Image
+                Container(
+                  width: 120,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: _faceImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.memory(_faceImage!, fit: BoxFit.cover),
+                        )
+                      : const Center(child: Icon(Icons.person, size: 64, color: Colors.grey)),
+                ),
+                const SizedBox(width: 16),
+                // Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildFieldLabel('SURNAME'),
+                      _buildFieldValue(mrz.surname),
+                      const SizedBox(height: 8),
+                      _buildFieldLabel('GIVEN NAMES'),
+                      _buildFieldValue(mrz.givenNames),
+                      const SizedBox(height: 8),
+                      _buildFieldLabel('NATIONALITY'),
+                      _buildFieldValue(mrz.nationality),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildFieldLabel('DATE OF BIRTH'),
+                                _buildFieldValue(_dg1?.mrz.dateOfBirth != null ? _formatDateYymmdd(_dg1!.mrz.dateOfBirth) : mrz.dateOfBirth),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildFieldLabel('SEX'),
+                                _buildFieldValue(mrz.sex),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildFieldLabel('DOCUMENT NO.'),
+                                _buildFieldValue(_dg1?.mrz.documentNumber ?? mrz.documentNumber),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildFieldLabel('DATE OF EXPIRY'),
+                                _buildFieldValue(_dg1?.mrz.dateOfExpiry != null ? _formatDateYymmdd(_dg1!.mrz.dateOfExpiry) : mrz.dateOfExpiry),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDateYymmdd(DateTime? date) {
+    if (date == null) return "";
+    final yy = (date.year % 100).toString().padLeft(2, '0');
+    final mm = date.month.toString().padLeft(2, '0');
+    final dd = date.day.toString().padLeft(2, '0');
+    return '$yy$mm$dd';
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Text(
+      label,
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey.shade600,
+      ),
+    );
+  }
+
+  Widget _buildFieldValue(String value) {
+    return Text(
+      value,
+      style: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  Widget _buildDataMatchVerification() {
+    final ocr = widget.mrzResult;
+    final nfc = _dg1?.mrz;
+
+    final nfcDob = _formatDateYymmdd(nfc?.dateOfBirth);
+    final nfcDoe = _formatDateYymmdd(nfc?.dateOfExpiry);
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Data Match Verification',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Comparing OCR camera data with verified NFC chip data.',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const Divider(height: 24),
+            _buildMatchRow('Document Code', ocr.documentCode, nfc?.documentCode),
+            const Divider(),
+            _buildMatchRow('Issuing State', ocr.issuingState, nfc?.country),
+            const Divider(),
+            _buildMatchRow('Document No.', ocr.documentNumber, nfc?.documentNumber),
+            const Divider(),
+            _buildMatchRow('Surname', ocr.surname, nfc?.lastName),
+            const Divider(),
+            _buildMatchRow('Given Names', ocr.givenNames, nfc?.firstName),
+            const Divider(),
+            _buildMatchRow('Nationality', ocr.nationality, nfc?.nationality),
+            const Divider(),
+            _buildMatchRow('Sex', ocr.sex, nfc?.gender),
+            const Divider(),
+            _buildMatchRow('Date of Birth', ocr.dateOfBirth, nfcDob.isNotEmpty ? nfcDob : null),
+            const Divider(),
+            _buildMatchRow('Date of Expiry', ocr.dateOfExpiry, nfcDoe.isNotEmpty ? nfcDoe : null),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMatchRow(String field, String ocrValue, String? nfcValue) {
+    final isMatch = ocrValue == nfcValue;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(field, style: const TextStyle(fontWeight: FontWeight.w500)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('OCR: $ocrValue', style: const TextStyle(fontSize: 12)),
+                Text('NFC: ${nfcValue ?? "N/A"}', style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+          ),
+          Icon(
+            isMatch ? Icons.check_circle : Icons.error,
+            color: isMatch ? Colors.green : Colors.red,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChipTechnicalDetails() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Chip Technical Details',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(height: 24),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.face, color: Colors.blue),
+              title: const Text('DG2 (Biometrics)'),
+              subtitle: _dg2 != null
+                  ? Text('Image: ${_dg2!.imageWidth}x${_dg2!.imageHeight}\nGender: ${_dg2!.gender}, Eye Color: ${_dg2!.eyeColor}')
+                  : const Text('Not available'),
+            ),
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.security, color: Colors.green),
+              title: const Text('SOD (Security Object)'),
+              subtitle: _sod != null
+                  ? Text('Verified, size: ${_sod!.toBytes().length} bytes')
+                  : const Text('Not available'),
+            ),
+          ],
         ),
       ),
     );
