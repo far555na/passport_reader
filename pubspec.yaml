@@ -34,6 +34,8 @@ dependencies:
   camera: ^0.11.0
   dmrtd: any
   logging: ^1.3.0
+  pointycastle: ^3.9.1
+  collection: ^1.19.1
 
 dependency_overrides:
   dmrtd:

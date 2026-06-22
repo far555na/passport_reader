@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:dmrtd/dmrtd.dart';
 import 'mrz_result.dart';
 import 'utils/image_decoder.dart';
-
+import 'utils/passive_auth_parser.dart';
+import 'utils/passive_authenticator.dart';
 class NfcScannerScreen extends StatefulWidget {
   final MrzResult mrzResult;
 
@@ -21,7 +22,7 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
   Uint8List? _faceImage;
   EfDG1? _dg1;
   EfDG2? _dg2;
-  EfSOD? _sod;
+  PassiveAuthVerificationResult? _paResult;
 
   @override
   void initState() {
@@ -107,6 +108,10 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
         final efCardAccess = await passport.readEfCardAccess();
         await passport.startSessionPACE(paceKey, efCardAccess);
       } catch (e) {
+        // If the physical connection was lost, don't even try BAC.
+        if (e.toString().contains('Tag was lost') || e.toString().contains('TagLostException')) {
+          throw Exception('NFC connection lost. Please hold the phone steadily against the passport and try again.');
+        }
         // 2. Fallback to BAC if PACE fails or EF.CardAccess is not found
         await passport.startSession(bacKey);
       }
@@ -120,6 +125,22 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
       final dg1 = await passport.readEfDG1();
       final dg2 = await passport.readEfDG2();
       final sod = await passport.readEfSOD();
+      
+      PassiveAuthVerificationResult? paVerification;
+      try {
+        final parsedSod = PassiveAuthenticationParser.parseSOD(sod.toBytes());
+        Map<int, Uint8List> dataGroups = {
+          1: dg1.toBytes(),
+          2: dg2.toBytes(),
+        };
+        paVerification = PassiveAuthenticator.verify(parsedSod, dataGroups);
+        
+        paVerification.dgVerification.forEach((dg, result) {
+          debugPrint('DG$dg Verification: ${result.isVerified} - ${result.message}');
+        });
+      } catch (e) {
+        debugPrint('Passive Authentication Error: $e');
+      }
       
       // Extract the face image bytes from DG2
       Uint8List? extractedImage = dg2.imageData;
@@ -137,7 +158,7 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
         _faceImage = extractedImage;
         _dg1 = dg1;
         _dg2 = dg2;
-        _sod = sod;
+        _paResult = paVerification;
       });
 
     } catch (e) {
@@ -469,10 +490,13 @@ class _NfcScannerScreenState extends State<NfcScannerScreen> {
             const Divider(),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.security, color: Colors.green),
-              title: const Text('SOD (Security Object)'),
-              subtitle: _sod != null
-                  ? Text('Verified, size: ${_sod!.toBytes().length} bytes')
+              leading: Icon(
+                _paResult?.isDataIntegrityVerified == true ? Icons.verified_user : Icons.warning,
+                color: _paResult?.isDataIntegrityVerified == true ? Colors.green : Colors.orange,
+              ),
+              title: const Text('Passive Authentication'),
+              subtitle: _paResult != null
+                  ? Text('Data Integrity: ${_paResult!.isDataIntegrityVerified ? "Verified (Hashes Match)" : "Unverified/Tampered"}\nSignature: ${_paResult!.isSignatureVerified ? "Verified" : "Unverified (X.509 stub)"}')
                   : const Text('Not available'),
             ),
           ],
