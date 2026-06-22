@@ -102,11 +102,11 @@ class MrzParser {
     final rawDoe = line2.substring(21, 27); // Pos 22–27
     final doeCheck = line2.substring(27, 28); // Pos 28
     final rawPersonal = line2.substring(28, 42); // Pos 29–42
-    final personalCheck = line2.substring(42, 43); // Pos 43
+    // final personalCheck = line2.substring(42, 43); // Pos 43
     final compositeCheck = line2.substring(43, 44); // Pos 44
 
     // Sanitize numeric fields
-    final docNum = _sanitizeNumber(rawDocNum);
+    // final docNum = _sanitizeNumber(rawDocNum);
     final dob = _sanitizeNumber(rawDob);
     final doe = _sanitizeNumber(rawDoe);
 
