@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:dmrtd/dmrtd.dart';
 import '../models/mrz_result.dart';
 import '../utils/image_decoder.dart';
-import 'passive_auth_parser.dart';
+import 'sod_parser.dart';
 import 'passive_authenticator.dart';
 import '../models/passive_auth_verification_result.dart';
 
@@ -91,7 +91,7 @@ class NfcService {
       
       PassiveAuthVerificationResult? paVerification;
       try {
-        final parsedSod = PassiveAuthenticationParser.parseSOD(sod.toBytes());
+        final parsedSod = SODParser.parseSOD(sod.toBytes());
         Map<int, Uint8List> dataGroups = {
           1: dg1.toBytes(),
           2: dg2.toBytes(),
