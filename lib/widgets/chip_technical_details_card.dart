@@ -44,7 +44,7 @@ class ChipTechnicalDetailsCard extends StatelessWidget {
               ),
               title: const Text('Passive Authentication'),
               subtitle: paResult != null
-                  ? Text('Data Integrity: ${paResult!.isDataIntegrityVerified ? "Verified (Hashes Match)" : "Unverified/Tampered"}\nSignature: ${paResult!.isSignatureVerified ? "Verified" : "Unverified (X.509 stub)"}')
+                  ? Text('Data Integrity: ${paResult!.isDataIntegrityVerified ? "Verified (Hashes Match)" : "Unverified/Tampered"}\nSignature: ${paResult!.signatureVerification.message}')
                   : const Text('Not available'),
             ),
           ],
