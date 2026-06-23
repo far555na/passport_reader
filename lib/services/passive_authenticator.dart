@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 import 'package:pointycastle/export.dart';
 import 'package:collection/collection.dart';
-import 'passive_auth_parser.dart';
+
 
 import '../models/verification_result.dart';
 import '../models/passive_auth_verification_result.dart';
+import '../models/passive_auth_result.dart';
 
 class PassiveAuthenticator {
   static const Map<String, String> _oidToDigestName = {

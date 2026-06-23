@@ -1,20 +1,7 @@
 import 'dart:typed_data';
 import 'package:pointycastle/asn1.dart';
 
-class PassiveAuthResult {
-  final Map<int, Uint8List> dgHashes;
-  final String hashAlgorithmOid;
-  final Uint8List? signature;
-  final Uint8List? dsCertificate;
-
-  PassiveAuthResult({
-    required this.dgHashes,
-    required this.hashAlgorithmOid,
-    this.signature,
-    this.dsCertificate,
-  });
-}
-
+import '../models/passive_auth_result.dart';
 class PassiveAuthenticationParser {
   /// Parses the raw bytes of EF.SOD
   static PassiveAuthResult parseSOD(Uint8List sodBytes) {
