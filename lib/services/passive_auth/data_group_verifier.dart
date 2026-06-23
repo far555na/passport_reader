@@ -3,7 +3,7 @@ import 'package:pointycastle/export.dart';
 import 'package:collection/collection.dart';
 
 import '../../models/verification_result.dart';
-import '../../models/passive_auth_result.dart';
+import '../../models/parsed_sod_data.dart';
 
 class DataGroupVerifier {
   static const Map<String, String> _oidToDigestName = {
@@ -16,7 +16,7 @@ class DataGroupVerifier {
 
   /// Verifies the integrity of the Data Groups against the hashes in the SOD.
   static Map<int, VerificationResult> verifyHashes(
-      PassiveAuthResult parsedSOD, Map<int, Uint8List> dataGroups) {
+      ParsedSODData parsedSOD, Map<int, Uint8List> dataGroups) {
     Map<int, VerificationResult> dgVerifications = {};
 
     String? digestName = _oidToDigestName[parsedSOD.hashAlgorithmOid];
