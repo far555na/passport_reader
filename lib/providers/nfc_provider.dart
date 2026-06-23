@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dmrtd/dmrtd.dart';
 import '../models/mrz_result.dart';
 import '../services/nfc_service.dart';
-import '../services/passive_authenticator.dart';
+import '../models/passive_auth_verification_result.dart';
 
 class NfcState {
   final String statusMessage;

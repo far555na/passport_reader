@@ -4,6 +4,7 @@ import '../models/mrz_result.dart';
 import '../utils/image_decoder.dart';
 import 'passive_auth_parser.dart';
 import 'passive_authenticator.dart';
+import '../models/passive_auth_verification_result.dart';
 
 class PassportNfcData {
   final EfDG1? dg1;

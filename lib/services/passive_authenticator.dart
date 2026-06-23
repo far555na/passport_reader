@@ -3,27 +3,8 @@ import 'package:pointycastle/export.dart';
 import 'package:collection/collection.dart';
 import 'passive_auth_parser.dart';
 
-class VerificationResult {
-  final bool isVerified;
-  final String message;
-
-  VerificationResult(this.isVerified, this.message);
-}
-
-class PassiveAuthVerificationResult {
-  final Map<int, VerificationResult> dgVerification;
-  final VerificationResult signatureVerification;
-
-  PassiveAuthVerificationResult({
-    required this.dgVerification,
-    required this.signatureVerification,
-  });
-
-  bool get isDataIntegrityVerified => 
-      dgVerification.isNotEmpty && dgVerification.values.every((v) => v.isVerified);
-
-  bool get isSignatureVerified => signatureVerification.isVerified;
-}
+import '../models/verification_result.dart';
+import '../models/passive_auth_verification_result.dart';
 
 class PassiveAuthenticator {
   static const Map<String, String> _oidToDigestName = {

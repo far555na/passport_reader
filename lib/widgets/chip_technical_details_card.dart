@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dmrtd/dmrtd.dart';
-import '../services/passive_authenticator.dart';
+import '../models/passive_auth_verification_result.dart';
 
 class ChipTechnicalDetailsCard extends StatelessWidget {
   final EfDG2? dg2;
