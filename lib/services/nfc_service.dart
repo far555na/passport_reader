@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:dmrtd/dmrtd.dart';
 import '../models/mrz_result.dart';
 import '../models/csca_data.dart';
+import '../models/data_groups.dart';
 import '../utils/image_decoder.dart';
 import 'passive_auth/sod_parser.dart';
 import 'passive_auth/passive_authenticator.dart';
@@ -81,10 +82,10 @@ class NfcService {
       PassiveAuthVerificationResult? paVerification;
       try {
         final parsedSod = SODParser.parseSOD(sod.toBytes());
-        Map<int, Uint8List> dataGroups = {
+        var dataGroups = DataGroups({
           1: dg1.toBytes(),
           2: dg2.toBytes(),
-        };
+        });
         paVerification = PassiveAuthenticator.verify(parsedSod, dataGroups, cscaData);
       } catch (e) {
         // Handle passive authentication error

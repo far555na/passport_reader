@@ -1,8 +1,8 @@
-import 'dart:typed_data';
 
 import '../../models/passive_auth_verification_result.dart';
 import '../../models/parsed_sod_data.dart';
 import '../../models/csca_data.dart';
+import '../../models/data_groups.dart';
 import 'data_group_verifier.dart';
 import 'signature_verifier.dart';
 import 'csca_verifier.dart';
@@ -10,7 +10,7 @@ import 'csca_verifier.dart';
 class PassiveAuthenticator {
   /// Verifies the entire Passive Authentication chain (Hashes, Signature, CSCA).
   static PassiveAuthVerificationResult verify(
-      ParsedSODData parsedSOD, Map<int, Uint8List> dataGroups, CscaData cscaData) {
+      ParsedSODData parsedSOD, DataGroups dataGroups, CscaData cscaData) {
     
     // Stage 1: Verify Data Group Hashes
     var dgResults = DataGroupVerifier.verifyHashes(parsedSOD, dataGroups);

@@ -4,12 +4,13 @@ import 'package:collection/collection.dart';
 
 import '../../models/verification_result.dart';
 import '../../models/parsed_sod_data.dart';
+import '../../models/data_groups.dart';
 import '../../utils/certificate_utils.dart';
 
 class DataGroupVerifier {
   /// Verifies the integrity of the Data Groups against the hashes in the SOD.
   static Map<int, VerificationResult> verifyHashes(
-      ParsedSODData parsedSOD, Map<int, Uint8List> dataGroups) {
+      ParsedSODData parsedSOD, DataGroups dataGroups) {
     Map<int, VerificationResult> dgVerifications = {};
 
     String? digestName = CertificateUtils.mapOidToDigestName(parsedSOD.hashAlgorithmOid);
