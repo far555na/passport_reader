@@ -5,23 +5,10 @@ import '../utils/image_decoder.dart';
 import 'passive_auth/sod_parser.dart';
 import 'passive_auth/passive_authenticator.dart';
 import '../models/passive_auth_verification_result.dart';
-
-class PassportNfcData {
-  final EfDG1? dg1;
-  final EfDG2? dg2;
-  final Uint8List? faceImage;
-  final PassiveAuthVerificationResult? paResult;
-
-  PassportNfcData({
-    this.dg1,
-    this.dg2,
-    this.faceImage,
-    this.paResult,
-  });
-}
+import '../models/nfc_result.dart';
 
 class NfcService {
-  Future<PassportNfcData> scanPassport({
+  Future<NfcResult> scanPassport({
     required MrzResult mrzResult,
     required Map<String, List<String>> cscaIndex,
     required Function(String status, double progress) onProgress,
@@ -111,7 +98,7 @@ class NfcService {
       
       onProgress('Done!', 1.0);
       
-      return PassportNfcData(
+      return NfcResult(
         dg1: dg1,
         dg2: dg2,
         faceImage: extractedImage,
