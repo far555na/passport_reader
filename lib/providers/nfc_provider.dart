@@ -68,11 +68,11 @@ class NfcNotifier extends Notifier<NfcState> {
 
     try {
       // Wait for the future to complete so we don't get null if it's still loading
-      final cscaIndex = await ref.read(cscaIndexProvider.future);
+      final cscaData = await ref.read(cscaIndexProvider.future);
       
       final nfcData = await _nfcService.scanPassport(
         mrzResult: mrzResult,
-        cscaIndex: cscaIndex,
+        cscaData: cscaData,
         onProgress: (status, progress) {
           state = state.copyWith(statusMessage: status, progress: progress);
         },

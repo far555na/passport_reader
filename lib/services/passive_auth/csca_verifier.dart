@@ -6,26 +6,37 @@ import 'package:basic_utils/basic_utils.dart';
 
 import '../../models/verification_result.dart';
 import '../../models/parsed_sod_data.dart';
+import '../../models/csca_data.dart';
 import '../../utils/certificate_utils.dart';
 
 class CscaVerifier {
   /// Verifies the Document Signer Certificate against a trusted CSCA Master List.
-  static VerificationResult verifyTrustChain(ParsedSODData parsedSOD, Map<String, List<String>> cscaIndex) {
+  static VerificationResult verifyTrustChain(
+    ParsedSODData parsedSOD,
+    CscaData cscaData,
+  ) {
     if (parsedSOD.dsCertificate == null) {
-      return VerificationResult(false, 'Missing Document Signer Certificate in SOD for CSCA check');
+      return VerificationResult(
+        false,
+        'Missing Document Signer Certificate in SOD for CSCA check',
+      );
     }
 
-    if (cscaIndex.isEmpty) {
-      debugPrint('CSCA Verifier: The provided cscaIndex map is empty.');
-      return VerificationResult(false, 'CSCA Master List index is empty or not loaded');
+    if (cscaData.isEmpty) {
+      debugPrint('CSCA Verifier: The provided cscaData map is empty.');
+      return VerificationResult(
+        false,
+        'CSCA Master List index is empty or not loaded',
+      );
     }
 
     try {
       // 1. Extract Issuer from DS Certificate using basic_utils for exact OID string mapping
       final dsCertBase64 = base64Encode(parsedSOD.dsCertificate!);
-      final dsPem = '-----BEGIN CERTIFICATE-----\n${StringUtils.chunk(dsCertBase64, 64).join('\n')}\n-----END CERTIFICATE-----';
+      final dsPem =
+          '-----BEGIN CERTIFICATE-----\n${StringUtils.chunk(dsCertBase64, 64).join('\n')}\n-----END CERTIFICATE-----';
       final dsX509 = X509Utils.x509CertificateFromPem(dsPem);
-      
+
       final issuerStr = dsX509.tbsCertificate?.issuer.toString() ?? '';
       debugPrint('CSCA Verifier: Looking for DS Issuer string: $issuerStr');
 
@@ -35,18 +46,23 @@ class CscaVerifier {
       final tbsCertificate = certSeq.elements![0] as ASN1Sequence;
 
       // 2. Look up the Issuer in the CSCA Index
-      final matchedCscaBase64List = cscaIndex[issuerStr];
+      final matchedCscaBase64List = cscaData.getCertificatesForIssuer(issuerStr);
       if (matchedCscaBase64List == null || matchedCscaBase64List.isEmpty) {
-        return VerificationResult(false, 'Document Signer Certificate issuer not found in trusted Master List');
+        return VerificationResult(
+          false,
+          'Document Signer Certificate issuer not found in trusted Master List',
+        );
       }
 
       final dsSignatureAlg = certSeq.elements![1] as ASN1Sequence;
       final dsAlgOid = dsSignatureAlg.elements![0] as ASN1ObjectIdentifier;
-      final algorithm = CertificateUtils.mapOidToSignatureAlgorithm(dsAlgOid.objectIdentifierAsString!);
-      
+      final algorithm = CertificateUtils.mapOidToSignatureAlgorithm(
+        dsAlgOid.objectIdentifierAsString!,
+      );
+
       final dsSignatureValue = certSeq.elements![2] as ASN1BitString;
       final dsSignedDataBytes = tbsCertificate.encode();
-      
+
       // Clean up signature bytes (remove unused bits byte if present in BIT STRING)
       var sigBytes = dsSignatureValue.valueBytes!;
       if (sigBytes.isNotEmpty && sigBytes[0] == 0) {
@@ -59,32 +75,48 @@ class CscaVerifier {
         try {
           // 3. Extract CSCA Public Key
           final cscaBytes = base64Decode(matchedCscaBase64);
-          
+
           // Extract CSCA public key
-          final cscaPublicKey = CertificateUtils.extractPublicKey(cscaBytes, algorithm);
-          
+          final cscaPublicKey = CertificateUtils.extractPublicKey(
+            cscaBytes,
+            algorithm,
+          );
+
           bool isVerified = false;
           if (algorithm.contains('RSA') && cscaPublicKey is pc.RSAPublicKey) {
             isVerified = CryptoUtils.rsaVerify(
-                cscaPublicKey, dsSignedDataBytes, sigBytes,
-                algorithm: algorithm);
-          } else if ((algorithm.contains('ECDSA') || algorithm.contains('EC')) && cscaPublicKey is pc.ECPublicKey) {
+              cscaPublicKey,
+              dsSignedDataBytes,
+              sigBytes,
+              algorithm: algorithm,
+            );
+          } else if ((algorithm.contains('ECDSA') ||
+                  algorithm.contains('EC')) &&
+              cscaPublicKey is pc.ECPublicKey) {
             final ecSignature = CryptoUtils.ecSignatureFromDerBytes(sigBytes);
             isVerified = CryptoUtils.ecVerify(
-                cscaPublicKey, dsSignedDataBytes, ecSignature,
-                algorithm: algorithm);
+              cscaPublicKey,
+              dsSignedDataBytes,
+              ecSignature,
+              algorithm: algorithm,
+            );
           }
-          
+
           if (isVerified) {
-            return VerificationResult(true, 'Trust Chain successfully verified against CSCA Master List');
+            return VerificationResult(
+              true,
+              'Trust Chain successfully verified against CSCA Master List',
+            );
           }
         } catch (e) {
           // Ignore and try next candidate
         }
       }
 
-      return VerificationResult(false, 'Trust Chain verification failed (no matching valid CSCA certificate found for issuer)');
-      
+      return VerificationResult(
+        false,
+        'Trust Chain verification failed (no matching valid CSCA certificate found for issuer)',
+      );
     } catch (e) {
       return VerificationResult(false, 'Error during CSCA verification: $e');
     }
