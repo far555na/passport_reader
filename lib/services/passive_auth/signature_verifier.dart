@@ -14,7 +14,7 @@ class SignatureVerifier {
 
     try {
       // Determine signature algorithm
-      String sigAlg = CertificateUtils.mapOidToAlgorithm(parsedSOD.signatureAlgorithmOid ?? '');
+      String sigAlg = CertificateUtils.mapOidToSignatureAlgorithm(parsedSOD.signatureAlgorithmOid ?? '');
       
       final publicKey = CertificateUtils.extractPublicKey(parsedSOD.dsCertificate!, sigAlg);
       

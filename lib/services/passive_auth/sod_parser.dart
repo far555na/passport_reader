@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:pointycastle/asn1.dart';
 
-import '../models/parsed_sod_data.dart';
+import '../../models/parsed_sod_data.dart';
 class SODParser {
   /// Parses the raw bytes of EF.SOD
   static ParsedSODData parseSOD(Uint8List sodBytes) {

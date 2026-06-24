@@ -113,7 +113,7 @@ class CertificateUtils {
     return result;
   }
 
-  static String mapOidToAlgorithm(String? oid) {
+  static String mapOidToSignatureAlgorithm(String? oid) {
     // Common OIDs for Document Signer Signatures
     switch (oid) {
       case '1.2.840.113549.1.1.11': return 'SHA-256/RSA';
@@ -126,6 +126,18 @@ class CertificateUtils {
       default:
         // Defaulting to SHA-256/RSA if unknown
         return 'SHA-256/RSA';
+    }
+  }
+
+  static String? mapOidToDigestName(String? oid) {
+    // Digest Algorithm OIDs (pure hash algorithms)
+    switch (oid) {
+      case '1.3.14.3.2.26': return 'SHA-1';
+      case '2.16.840.1.101.3.4.2.4': return 'SHA-224';
+      case '2.16.840.1.101.3.4.2.1': return 'SHA-256';
+      case '2.16.840.1.101.3.4.2.2': return 'SHA-384';
+      case '2.16.840.1.101.3.4.2.3': return 'SHA-512';
+      default: return null;
     }
   }
 }

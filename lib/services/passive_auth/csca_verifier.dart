@@ -42,7 +42,7 @@ class CscaVerifier {
 
       final dsSignatureAlg = certSeq.elements![1] as ASN1Sequence;
       final dsAlgOid = dsSignatureAlg.elements![0] as ASN1ObjectIdentifier;
-      final algorithm = CertificateUtils.mapOidToAlgorithm(dsAlgOid.objectIdentifierAsString!);
+      final algorithm = CertificateUtils.mapOidToSignatureAlgorithm(dsAlgOid.objectIdentifierAsString!);
       
       final dsSignatureValue = certSeq.elements![2] as ASN1BitString;
       final dsSignedDataBytes = tbsCertificate.encode();

@@ -4,22 +4,15 @@ import 'package:collection/collection.dart';
 
 import '../../models/verification_result.dart';
 import '../../models/parsed_sod_data.dart';
+import '../../utils/certificate_utils.dart';
 
 class DataGroupVerifier {
-  static const Map<String, String> _oidToDigestName = {
-    '1.3.14.3.2.26': 'SHA-1',
-    '2.16.840.1.101.3.4.2.4': 'SHA-224',
-    '2.16.840.1.101.3.4.2.1': 'SHA-256',
-    '2.16.840.1.101.3.4.2.2': 'SHA-384',
-    '2.16.840.1.101.3.4.2.3': 'SHA-512',
-  };
-
   /// Verifies the integrity of the Data Groups against the hashes in the SOD.
   static Map<int, VerificationResult> verifyHashes(
       ParsedSODData parsedSOD, Map<int, Uint8List> dataGroups) {
     Map<int, VerificationResult> dgVerifications = {};
 
-    String? digestName = _oidToDigestName[parsedSOD.hashAlgorithmOid];
+    String? digestName = CertificateUtils.mapOidToDigestName(parsedSOD.hashAlgorithmOid);
     if (digestName == null) {
       // If we don't support the hash algorithm, we can't verify any DG
       for (var entry in dataGroups.entries) {

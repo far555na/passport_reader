@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:dmrtd/dmrtd.dart';
 import '../models/mrz_result.dart';
 import '../utils/image_decoder.dart';
-import 'sod_parser.dart';
-import 'passive_authenticator.dart';
+import 'passive_auth/sod_parser.dart';
+import 'passive_auth/passive_authenticator.dart';
 import '../models/passive_auth_verification_result.dart';
 
 class PassportNfcData {
