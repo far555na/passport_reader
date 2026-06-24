@@ -6,7 +6,7 @@ import 'package:basic_utils/basic_utils.dart';
 
 import '../../models/verification_result.dart';
 import '../../models/parsed_sod_data.dart';
-import 'signature_verifier.dart';
+import '../../utils/certificate_utils.dart';
 
 class CscaVerifier {
   /// Verifies the Document Signer Certificate against a trusted CSCA Master List.
@@ -42,7 +42,7 @@ class CscaVerifier {
 
       final dsSignatureAlg = certSeq.elements![1] as ASN1Sequence;
       final dsAlgOid = dsSignatureAlg.elements![0] as ASN1ObjectIdentifier;
-      final algorithm = _mapOidToAlgorithm(dsAlgOid.objectIdentifierAsString!);
+      final algorithm = CertificateUtils.mapOidToAlgorithm(dsAlgOid.objectIdentifierAsString!);
       
       final dsSignatureValue = certSeq.elements![2] as ASN1BitString;
       final dsSignedDataBytes = tbsCertificate.encode();
@@ -61,7 +61,7 @@ class CscaVerifier {
           final cscaBytes = base64Decode(matchedCscaBase64);
           
           // Extract CSCA public key
-          final cscaPublicKey = SignatureVerifier.extractPublicKey(cscaBytes, algorithm);
+          final cscaPublicKey = CertificateUtils.extractPublicKey(cscaBytes, algorithm);
           
           bool isVerified = false;
           if (algorithm.contains('RSA') && cscaPublicKey is pc.RSAPublicKey) {
@@ -87,21 +87,6 @@ class CscaVerifier {
       
     } catch (e) {
       return VerificationResult(false, 'Error during CSCA verification: $e');
-    }
-  }
-
-  static String _mapOidToAlgorithm(String oid) {
-    // Common OIDs for CSCA Signatures
-    switch (oid) {
-      case '1.2.840.113549.1.1.11': return 'SHA-256/RSA';
-      case '1.2.840.113549.1.1.12': return 'SHA-384/RSA';
-      case '1.2.840.113549.1.1.13': return 'SHA-512/RSA';
-      case '1.2.840.113549.1.1.5': return 'SHA-1/RSA';
-      case '1.2.840.10045.4.3.2': return 'SHA-256/ECDSA';
-      case '1.2.840.10045.4.3.3': return 'SHA-384/ECDSA';
-      case '1.2.840.10045.4.3.4': return 'SHA-512/ECDSA';
-      default:
-        return 'SHA-256/RSA';
     }
   }
 }
