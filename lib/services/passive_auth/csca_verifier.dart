@@ -32,10 +32,11 @@ class CscaVerifier {
     try {
       final parsedDSC = parsedSOD.parsedDSCData!;
       final issuerStr = parsedDSC.issuer;
-      debugPrint('CSCA Verifier: Looking for DS Issuer string: $issuerStr');
 
       // 1. Look up the Issuer in the CSCA Index
-      final matchedCscaBase64List = cscaData.getCertificatesForIssuer(issuerStr);
+      final matchedCscaBase64List = cscaData.getCertificatesForIssuer(
+        issuerStr,
+      );
       if (matchedCscaBase64List == null || matchedCscaBase64List.isEmpty) {
         return VerificationResult(
           false,
