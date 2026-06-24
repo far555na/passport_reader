@@ -17,7 +17,7 @@ The system SHALL use the MRZ data (Document Number, DOB, Expiry Date) to authent
 - **THEN** the chip rejects the connection and the system shows an authentication error
 
 ### Requirement: Read Elementary Files
-The system SHALL read the mandatory data files from the chip after establishing a secure session.
+The system SHALL read the mandatory data files from the chip after establishing a secure session, and SHALL perform Passive Authentication to verify the integrity and authenticity of the extracted data.
 
 #### Scenario: Extract Face Image
 - **WHEN** the secure session is active
@@ -30,3 +30,7 @@ The system SHALL read the mandatory data files from the chip after establishing 
 #### Scenario: Extract Security Object Document
 - **WHEN** the secure session is active
 - **THEN** the system successfully requests and parses EF.SOD to retrieve the document signatures
+
+#### Scenario: Passive Authentication Verification
+- **WHEN** EF.DG1, EF.DG2, and EF.SOD have been successfully extracted
+- **THEN** the system uses the EF.SOD to cryptographically verify the integrity of EF.DG1 and EF.DG2 data.
