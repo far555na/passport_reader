@@ -39,12 +39,12 @@ class ChipTechnicalDetailsCard extends StatelessWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Icon(
-                paResult?.isDataIntegrityVerified == true ? Icons.verified_user : Icons.warning,
-                color: paResult?.isDataIntegrityVerified == true ? Colors.green : Colors.orange,
+                paResult?.isFullyVerified == true ? Icons.verified_user : Icons.warning,
+                color: paResult?.isFullyVerified == true ? Colors.green : Colors.orange,
               ),
               title: const Text('Passive Authentication'),
               subtitle: paResult != null
-                  ? Text('Data Integrity: ${paResult!.isDataIntegrityVerified ? "Verified (Hashes Match)" : "Unverified/Tampered"}\nSignature: ${paResult!.signatureVerification.message}')
+                  ? Text('Data Integrity: ${paResult!.isDataIntegrityVerified ? "Verified (Hashes Match)" : "Unverified/Tampered"}\nSignature: ${paResult!.signatureVerification.message}\nCSCA Trust Chain: ${paResult!.cscaVerification.message}')
                   : const Text('Not available'),
             ),
           ],

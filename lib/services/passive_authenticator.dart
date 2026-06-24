@@ -9,7 +9,7 @@ import 'passive_auth/csca_verifier.dart';
 class PassiveAuthenticator {
   /// Verifies the entire Passive Authentication chain (Hashes, Signature, CSCA).
   static PassiveAuthVerificationResult verify(
-      ParsedSODData parsedSOD, Map<int, Uint8List> dataGroups) {
+      ParsedSODData parsedSOD, Map<int, Uint8List> dataGroups, Map<String, List<String>> cscaIndex) {
     
     // Stage 1: Verify Data Group Hashes
     var dgResults = DataGroupVerifier.verifyHashes(parsedSOD, dataGroups);
@@ -18,7 +18,7 @@ class PassiveAuthenticator {
     var sigResult = SignatureVerifier.verifySignature(parsedSOD);
     
     // Stage 3: Verify DSC Trust Chain against CSCA
-    var cscaResult = CscaVerifier.verifyTrustChain(parsedSOD);
+    var cscaResult = CscaVerifier.verifyTrustChain(parsedSOD, cscaIndex);
 
     return PassiveAuthVerificationResult(
       dgVerification: dgResults,

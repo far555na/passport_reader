@@ -54,9 +54,11 @@ class SODParser {
       var element = signedData.elements![i];
       if (element.tag == 0xA0) {
         var certSetParser = ASN1Parser(element.valueBytes);
-        if (certSetParser.hasNext()) {
+        int certCount = 0;
+        while (certSetParser.hasNext()) {
            var cert = certSetParser.nextObject();
-           dsCertificate = cert.encode();
+           if (certCount == 0) dsCertificate = cert.encode();
+           certCount++;
         }
       } else if (element.tag == 0x31) { 
         var signerInfos = element as ASN1Set;

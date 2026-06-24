@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:pointycastle/export.dart' as pc;
 import 'package:pointycastle/asn1.dart';
@@ -15,23 +16,22 @@ class SignatureVerifier {
 
     try {
       // Determine signature algorithm
-      String algorithm = _mapOidToAlgorithm(parsedSOD.signatureAlgorithmOid);
+      String sigAlg = _mapOidToAlgorithm(parsedSOD.signatureAlgorithmOid ?? '');
       
-      // Parse Document Signer Certificate to extract public key
-      final publicKey = _extractPublicKey(parsedSOD.dsCertificate!, algorithm);
+      final publicKey = extractPublicKey(parsedSOD.dsCertificate!, sigAlg);
       
       bool isVerified = false;
-      if (algorithm.contains('RSA')) {
+      if (sigAlg.contains('RSA')) {
         isVerified = CryptoUtils.rsaVerify(
             publicKey as pc.RSAPublicKey, parsedSOD.signedDataBytes!, parsedSOD.signature!,
-            algorithm: algorithm);
-      } else if (algorithm.contains('ECDSA')) {
+            algorithm: sigAlg);
+      } else if (sigAlg.contains('ECDSA') || sigAlg.contains('EC')) {
         final ecSignature = CryptoUtils.ecSignatureFromDerBytes(parsedSOD.signature!);
         isVerified = CryptoUtils.ecVerify(
             publicKey as pc.ECPublicKey, parsedSOD.signedDataBytes!, ecSignature,
-            algorithm: algorithm);
+            algorithm: sigAlg);
       } else {
-         return VerificationResult(false, 'Unsupported signature algorithm: ${parsedSOD.signatureAlgorithmOid}');
+         return VerificationResult(false, 'Unsupported signature algorithm: $sigAlg');
       }
 
       if (isVerified) {
@@ -44,7 +44,7 @@ class SignatureVerifier {
     }
   }
 
-  static pc.PublicKey _extractPublicKey(Uint8List certBytes, String algorithm) {
+  static pc.PublicKey extractPublicKey(Uint8List certBytes, String algorithm) {
     var asn1Parser = ASN1Parser(certBytes);
     var certSeq = asn1Parser.nextObject() as ASN1Sequence;
     var tbsCertSeq = certSeq.elements![0] as ASN1Sequence;
@@ -60,23 +60,30 @@ class SignatureVerifier {
       }
     }
     
-    if (spki == null) throw Exception("Could not find SubjectPublicKeyInfo in certificate");
+    if (spki == null) {
+      throw Exception('Could not find SubjectPublicKeyInfo in certificate');
+    }
     
+    var algIdSeq = spki.elements![0] as ASN1Sequence;
+    var oid = (algIdSeq.elements![0] as ASN1ObjectIdentifier).objectIdentifierAsString;
+
     var spkiBytes = spki.encode();
     
-    try {
-      if (algorithm.contains('RSA')) {
-        return CryptoUtils.rsaPublicKeyFromDERBytes(spkiBytes);
-      } else {
+    if (oid == '1.2.840.113549.1.1.1' || oid == '1.2.840.113549.1.1.10') {
+      return CryptoUtils.rsaPublicKeyFromDERBytes(spkiBytes);
+    } else if (oid == '1.2.840.10045.2.1') {
+      try {
         return CryptoUtils.ecPublicKeyFromDerBytes(spkiBytes);
+      } catch (e) {
+        if (algorithm.contains('ECDSA')) {
+          // Named curve extraction failed. Trying explicit curve parameters fallback...
+          return _ecPublicKeyFromSpkiWithExplicitParams(spkiBytes);
+        }
+        throw Exception("Failed to parse public key from SPKI: $e");
       }
-    } catch (e) {
-      if (algorithm.contains('ECDSA')) {
-        // Named curve extraction failed. Trying explicit curve parameters fallback...
-        return _ecPublicKeyFromSpkiWithExplicitParams(spkiBytes);
-      }
-      throw Exception("Failed to parse public key from SPKI: $e");
     }
+
+    throw Exception('Unsupported public key OID: $oid');
   }
 
   /// Attempts to reconstruct an [ECPublicKey] from a SubjectPublicKeyInfo DER

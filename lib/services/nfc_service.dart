@@ -23,6 +23,7 @@ class PassportNfcData {
 class NfcService {
   Future<PassportNfcData> scanPassport({
     required MrzResult mrzResult,
+    required Map<String, List<String>> cscaIndex,
     required Function(String status, double progress) onProgress,
   }) async {
     onProgress('Connecting to passport...', 0.1);
@@ -96,13 +97,9 @@ class NfcService {
           1: dg1.toBytes(),
           2: dg2.toBytes(),
         };
-        paVerification = PassiveAuthenticator.verify(parsedSod, dataGroups);
-        
-        paVerification.dgVerification.forEach((dg, result) {
-          debugPrint('DG$dg Verification: ${result.isVerified} - ${result.message}');
-        });
+        paVerification = PassiveAuthenticator.verify(parsedSod, dataGroups, cscaIndex);
       } catch (e) {
-        debugPrint('Passive Authentication Error: $e');
+        // Handle passive authentication error
       }
       
       // Extract the face image bytes from DG2

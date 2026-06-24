@@ -1,9 +1,11 @@
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dmrtd/dmrtd.dart';
 import '../models/mrz_result.dart';
 import '../services/nfc_service.dart';
 import '../models/passive_auth_verification_result.dart';
+import 'csca_provider.dart';
 
 class NfcState {
   final String statusMessage;
@@ -65,8 +67,12 @@ class NfcNotifier extends Notifier<NfcState> {
     state = state.copyWith(isScanning: true, progress: 0.0);
 
     try {
+      // Wait for the future to complete so we don't get null if it's still loading
+      final cscaIndex = await ref.read(cscaIndexProvider.future);
+      
       final nfcData = await _nfcService.scanPassport(
         mrzResult: mrzResult,
+        cscaIndex: cscaIndex,
         onProgress: (status, progress) {
           state = state.copyWith(statusMessage: status, progress: progress);
         },
