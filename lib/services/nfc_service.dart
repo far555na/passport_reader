@@ -1,15 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:dmrtd/dmrtd.dart';
+
 import '../models/mrz_result.dart';
 import '../models/csca_data.dart';
-import '../models/data_groups.dart';
-import '../utils/image_decoder.dart';
-import 'passive_auth/sod_parser.dart';
-import 'passive_auth/passive_authenticator.dart';
-import '../models/passive_auth_verification_result.dart';
 import '../models/nfc_result.dart';
+import 'passport_reader_service.dart';
 
 class NfcService {
+  final PassportReaderService _readerService = PassportReaderService();
+
   Future<NfcResult> scanPassport({
     required MrzResult mrzResult,
     required CscaData cscaData,
@@ -21,90 +19,26 @@ class NfcService {
     bool hasError = false;
 
     try {
-      // 1. Start NFC session
+      // 1. Check NFC Status
       var status = await NfcProvider.nfcStatus;
       if (status != NfcStatus.enabled) {
         throw Exception('NFC is not available on this device.');
       }
 
+      // 2. Connect to NFC Hardware
       await nfcProvider.connect(
         timeout: const Duration(seconds: 10),
         iosAlertMessage: "Hold your iPhone near the passport.",
       );
 
-      onProgress('Authenticating (BAC/PACE)...', 0.3);
-
-      // 2. Initialize Passport and Authenticate
-      final docNum = mrzResult.documentNumber;
-      final dob = mrzResult.dateOfBirth; // e.g. "900101"
-      final doe = mrzResult.dateOfExpiry; // e.g. "300101"
-      
       final passport = Passport(nfcProvider);
-      
-      DateTime parseDate(String yymmdd, {bool isExpiry = false}) {
-        final yy = int.parse(yymmdd.substring(0, 2));
-        final mm = int.parse(yymmdd.substring(2, 4));
-        final dd = int.parse(yymmdd.substring(4, 6));
-        
-        final currentYear = DateTime.now().year;
-        final currentTwoDigitYear = currentYear % 100;
-        
-        int prefix;
-        if (isExpiry) {
-          prefix = 2000;
-        } else {
-          prefix = yy > currentTwoDigitYear ? 1900 : 2000;
-        }
-        
-        return DateTime(prefix + yy, mm, dd);
-      }
-      
-      final bacKey = DBAKey(docNum, parseDate(dob), parseDate(doe, isExpiry: true));
-      final paceKey = DBAKey(docNum, parseDate(dob), parseDate(doe, isExpiry: true), paceMode: true);
 
-      try {
-        final efCardAccess = await passport.readEfCardAccess();
-        await passport.startSessionPACE(paceKey, efCardAccess);
-      } catch (e) {
-        if (e.toString().contains('Tag was lost') || e.toString().contains('TagLostException')) {
-          throw Exception('NFC connection lost. Please hold the phone steadily against the passport and try again.');
-        }
-        await passport.startSession(bacKey);
-      }
-      
-      onProgress('Reading Data...', 0.6);
-
-      // 3. Read DG1, DG2, SOD
-      final dg1 = await passport.readEfDG1();
-      final dg2 = await passport.readEfDG2();
-      final sod = await passport.readEfSOD();
-      
-      PassiveAuthVerificationResult? paVerification;
-      try {
-        final parsedSod = SODParser.parseSOD(sod.toBytes());
-        var dataGroups = DataGroups({
-          1: dg1.toBytes(),
-          2: dg2.toBytes(),
-        });
-        paVerification = PassiveAuthenticator.verify(parsedSod, dataGroups, cscaData);
-      } catch (e) {
-        // Handle passive authentication error
-      }
-      
-      // Extract the face image bytes from DG2
-      Uint8List? extractedImage = dg2.imageData;
-      
-      if (extractedImage != null) {
-        extractedImage = await ImageDecoder.decodeImage(extractedImage);
-      }
-      
-      onProgress('Done!', 1.0);
-      
-      return NfcResult(
-        dg1: dg1,
-        dg2: dg2,
-        faceImage: extractedImage,
-        paResult: paVerification,
+      // 3. Delegate Passport Reading to Reader Service
+      return await _readerService.readPassport(
+        passport: passport,
+        mrzResult: mrzResult,
+        cscaData: cscaData,
+        onProgress: onProgress,
       );
     } catch (e) {
       hasError = true;

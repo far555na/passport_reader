@@ -4,7 +4,7 @@ import 'package:pointycastle/asn1.dart';
 import 'package:basic_utils/basic_utils.dart';
 
 import '../../models/parsed_dsc_data.dart';
-import '../../utils/certificate_utils.dart';
+import '../../utils/oid_mapper.dart';
 
 class DSCParser {
   /// Parses the raw bytes of the Document Signer Certificate (DSC)
@@ -25,7 +25,7 @@ class DSCParser {
     // 3. Extract signature algorithm
     final dsSignatureAlg = certSeq.elements![1] as ASN1Sequence;
     final dsAlgOid = dsSignatureAlg.elements![0] as ASN1ObjectIdentifier;
-    final algorithm = CertificateUtils.mapOidToSignatureAlgorithm(
+    final algorithm = OidMapper.mapOidToSignatureAlgorithm(
       dsAlgOid.objectIdentifierAsString!,
     );
 

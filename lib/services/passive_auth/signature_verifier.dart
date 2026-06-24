@@ -3,6 +3,7 @@ import 'package:pointycastle/export.dart' as pc;
 import '../../models/verification_result.dart';
 import '../../models/parsed_sod_data.dart';
 import '../../utils/certificate_utils.dart';
+import '../../utils/oid_mapper.dart';
 
 class SignatureVerifier {
   /// Verifies the digital signature of the EF.SOD using the Document Signer Certificate.
@@ -14,7 +15,7 @@ class SignatureVerifier {
 
     try {
       // Determine signature algorithm
-      String sigAlg = CertificateUtils.mapOidToSignatureAlgorithm(parsedSOD.signatureAlgorithmOid ?? '');
+      String sigAlg = OidMapper.mapOidToSignatureAlgorithm(parsedSOD.signatureAlgorithmOid ?? '');
       
       final publicKey = CertificateUtils.extractPublicKey(parsedSOD.parsedDSCData!.rawCertBytes, sigAlg);
       
