@@ -7,7 +7,7 @@ import '../../utils/certificate_utils.dart';
 class SignatureVerifier {
   /// Verifies the digital signature of the EF.SOD using the Document Signer Certificate.
   static VerificationResult verifySignature(ParsedSODData parsedSOD) {
-    if (parsedSOD.signature == null || parsedSOD.dsCertificate == null || parsedSOD.signedDataBytes == null) {
+    if (parsedSOD.signature == null || parsedSOD.parsedDSCData == null || parsedSOD.signedDataBytes == null) {
       return VerificationResult(
           false, 'Missing signature, certificate, or signed data in SOD');
     }
@@ -16,7 +16,7 @@ class SignatureVerifier {
       // Determine signature algorithm
       String sigAlg = CertificateUtils.mapOidToSignatureAlgorithm(parsedSOD.signatureAlgorithmOid ?? '');
       
-      final publicKey = CertificateUtils.extractPublicKey(parsedSOD.dsCertificate!, sigAlg);
+      final publicKey = CertificateUtils.extractPublicKey(parsedSOD.parsedDSCData!.rawCertBytes, sigAlg);
       
       bool isVerified = false;
       if (sigAlg.contains('RSA')) {

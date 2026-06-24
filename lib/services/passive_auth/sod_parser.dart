@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:pointycastle/asn1.dart';
 
 import '../../models/parsed_sod_data.dart';
+import '../../models/parsed_dsc_data.dart';
+import 'dsc_parser.dart';
 class SODParser {
   /// Parses the raw bytes of EF.SOD
   static ParsedSODData parseSOD(Uint8List sodBytes) {
@@ -94,11 +96,20 @@ class SODParser {
       }
     }
     
+    ParsedDSCData? parsedDSCData;
+    if (dsCertificate != null) {
+      try {
+        parsedDSCData = DSCParser.parse(dsCertificate);
+      } catch (e) {
+        // Handle parsing error if needed
+      }
+    }
+
     return ParsedSODData(
       dgHashes: dgHashes,
       hashAlgorithmOid: hashAlgOid,
       signature: signature,
-      dsCertificate: dsCertificate,
+      parsedDSCData: parsedDSCData,
       signedDataBytes: signedDataBytes,
       signatureAlgorithmOid: signatureAlgorithmOid,
     );
