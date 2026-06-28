@@ -5,6 +5,7 @@ import '../providers/mrz_provider.dart';
 import '../widgets/passport_details_card.dart';
 import '../widgets/data_match_card.dart';
 import '../widgets/chip_technical_details_card.dart';
+import 'face_match_screen.dart';
 
 class NfcScannerScreen extends ConsumerStatefulWidget {
   const NfcScannerScreen({super.key});
@@ -73,6 +74,25 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
                 paResult: nfcState.paResult,
               ),
               const SizedBox(height: 32),
+              if (nfcState.faceImage != null)
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FaceMatchScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.face),
+                  label: const Text('Match Face', style: TextStyle(fontSize: 18)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                 style: ElevatedButton.styleFrom(
