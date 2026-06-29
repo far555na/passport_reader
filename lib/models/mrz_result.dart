@@ -1,19 +1,11 @@
 /// Represents the format/size of the MRZ document.
 enum MrzFormat {
-  /// ID cards — 3 lines × 30 characters
-  td1,
-
-  /// Visas / some ID cards — 2 lines × 36 characters
-  td2,
-
   /// Passport booklets — 2 lines × 44 characters
   td3,
 }
 
 /// Holds all data extracted from a Machine Readable Zone (MRZ).
-///
-/// Supports TD1 (3×30), TD2 (2×36), and TD3 (2×44) formats
-/// per ICAO Doc 9303.
+/// Supports TD3 (2×44) format per ICAO Doc 9303.
 class MrzResult {
   /// The detected MRZ format.
   final MrzFormat format;
@@ -52,17 +44,7 @@ class MrzResult {
   // ── Optional / format-specific fields ──
 
   /// TD3: Personal number (positions 29–42).
-  /// TD2: Optional data (positions 29–35).
-  /// TD1: Not used (empty string).
   final String personalNumber;
-
-  /// TD1 only: Optional data from Line 1 positions 16–30.
-  /// Empty string for TD2/TD3.
-  final String optionalData1;
-
-  /// TD1 only: Optional data from Line 2 positions 19–29.
-  /// Empty string for TD2/TD3.
-  final String optionalData2;
 
   // ── Validation ──
 
@@ -84,8 +66,6 @@ class MrzResult {
     required this.sex,
     required this.dateOfExpiry,
     this.personalNumber = '',
-    this.optionalData1 = '',
-    this.optionalData2 = '',
     required this.isCompositeValid,
     required this.rawLines,
   });
@@ -93,10 +73,6 @@ class MrzResult {
   /// Human-readable format label.
   String get formatLabel {
     switch (format) {
-      case MrzFormat.td1:
-        return 'TD1 (ID Card)';
-      case MrzFormat.td2:
-        return 'TD2';
       case MrzFormat.td3:
         return 'TD3 (Passport)';
     }

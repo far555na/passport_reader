@@ -61,10 +61,6 @@ class MrzDetailsCard extends StatelessWidget {
             // Optional fields (only show if non-empty)
             if (mrz.personalNumber.isNotEmpty)
               _fieldRow('Personal Number', mrz.personalNumber),
-            if (mrz.optionalData1.isNotEmpty)
-              _fieldRow('Optional Data 1', mrz.optionalData1),
-            if (mrz.optionalData2.isNotEmpty)
-              _fieldRow('Optional Data 2', mrz.optionalData2),
           ],
         ),
       ),

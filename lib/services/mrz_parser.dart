@@ -2,9 +2,7 @@ import '../models/mrz_result.dart';
 
 /// Parses Machine Readable Zone (MRZ) text from OCR output.
 ///
-/// Supports all three ICAO 9303 formats:
-/// - TD1: 3 lines × 30 characters (ID cards)
-/// - TD2: 2 lines × 36 characters (visas / some IDs)
+/// Supports the ICAO 9303 TD3 format:
 /// - TD3: 2 lines × 44 characters (passport booklets)
 class MrzParser {
   /// Parses raw OCR text and returns an [MrzResult] if a valid MRZ is found.
@@ -21,17 +19,8 @@ class MrzParser {
     // print(collapsedText);
     // print('--------------------------');
 
-    // Try TD3 first (most common: passport), then TD1, then TD2
-    final td3 = _tryTD3(collapsedText);
-    if (td3 != null) return td3;
-
-    final td1 = _tryTD1(collapsedText);
-    if (td1 != null) return td1;
-
-    final td2 = _tryTD2(collapsedText);
-    if (td2 != null) return td2;
-
-    return null;
+    // Only support TD3 (passports)
+    return _tryTD3(collapsedText);
   }
 
   // ──────────────────────────────────────────────
@@ -146,214 +135,7 @@ class MrzParser {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // TD2: Visa / Some IDs — 2 lines × 36 characters
-  // ──────────────────────────────────────────────
 
-  static MrzResult? _tryTD2(String collapsedText) {
-    // TD2 Line 2 is 36 characters.
-    final line2Pattern = RegExp(
-      r'[A-Z0-9<]{9}' // Document number
-      r'[0-9A-Z<]' // Check digit
-      r'[A-Z<]{3}' // Nationality
-      r'[0-9A-Z<]{6}' // DOB
-      r'[0-9A-Z<]' // Check digit
-      r'[MF<]' // Sex
-      r'[0-9A-Z<]{6}' // DOE
-      r'[0-9A-Z<]' // Check digit
-      r'[A-Z0-9<]{7}' // Optional data
-      r'[0-9A-Z<]', // Check digit
-    );
-
-    final matches = line2Pattern.allMatches(collapsedText);
-    for (final match in matches) {
-      final line2 = match.group(0)!;
-      final precedingText = collapsedText.substring(0, match.start);
-
-      final codeMatches = RegExp(r'[A-Z][A-Z<]').allMatches(precedingText);
-      if (codeMatches.isNotEmpty) {
-        var line1 = precedingText.substring(codeMatches.last.start);
-        if (line1.length < 36) {
-          line1 = line1.padRight(36, '<');
-        } else if (line1.length > 36) {
-          line1 = line1.substring(0, 36);
-        }
-
-        final result = _parseTD2(line1, line2);
-        if (result != null) return result;
-      }
-    }
-    return null;
-  }
-
-  static MrzResult? _parseTD2(String line1, String line2) {
-    // ── Line 1 ──
-    final documentCode = line1.substring(0, 2); // Pos 1–2
-    final issuingState = line1.substring(2, 5); // Pos 3–5
-    final nameField = line1.substring(5, 36); // Pos 6–36
-
-    // ── Line 2 ──
-    final rawDocNum = line2.substring(0, 9); // Pos 1–9
-    final docNumCheck = line2.substring(9, 10); // Pos 10
-    final nationality = line2.substring(10, 13); // Pos 11–13
-    final rawDob = line2.substring(13, 19); // Pos 14–19
-    final dobCheck = line2.substring(19, 20); // Pos 20
-    final sex = line2.substring(20, 21); // Pos 21
-    final rawDoe = line2.substring(21, 27); // Pos 22–27
-    final doeCheck = line2.substring(27, 28); // Pos 28
-    final rawOptional = line2.substring(28, 35); // Pos 29–35
-    final compositeCheck = line2.substring(35, 36); // Pos 36
-
-    // Sanitize numeric fields
-    final dob = _sanitizeNumber(rawDob);
-    final doe = _sanitizeNumber(rawDoe);
-
-    // Validate individual check digits
-    final validDocNum = _getValidValue(rawDocNum, _sanitizeNumber(docNumCheck));
-    if (validDocNum == null) return null;
-    if (!_validateChecksum(dob, _sanitizeNumber(dobCheck))) return null;
-    if (!_validateChecksum(doe, _sanitizeNumber(doeCheck))) return null;
-
-    // Composite check digit: positions 1–10, 14–20, 22–35
-    final compositeData =
-        line2.substring(0, 10) + // pos 1–10
-        line2.substring(13, 20) + // pos 14–20
-        line2.substring(21, 35); // pos 22–35
-    final isCompositeValid = _validateChecksum(
-      compositeData,
-      _sanitizeNumber(compositeCheck),
-    );
-
-    final nameParts = _parseName(nameField);
-
-    return MrzResult(
-      format: MrzFormat.td2,
-      documentCode: _cleanFiller(documentCode),
-      issuingState: _cleanFiller(issuingState),
-      surname: nameParts[0],
-      givenNames: nameParts[1],
-      documentNumber: validDocNum.replaceAll('<', ''),
-      nationality: _cleanFiller(nationality),
-      dateOfBirth: dob,
-      sex: sex,
-      dateOfExpiry: doe,
-      personalNumber: _cleanFiller(rawOptional),
-      isCompositeValid: isCompositeValid,
-      rawLines: [line1, line2],
-    );
-  }
-
-  // ──────────────────────────────────────────────
-  // TD1: ID Cards — 3 lines × 30 characters
-  // ──────────────────────────────────────────────
-
-  static MrzResult? _tryTD1(String collapsedText) {
-    // TD1 Line 2 is 30 characters.
-    final line2Pattern = RegExp(
-      r'[0-9A-Z<]{6}' // DOB
-      r'[0-9A-Z<]' // Check digit
-      r'[MF<]' // Sex
-      r'[0-9A-Z<]{6}' // DOE
-      r'[0-9A-Z<]' // Check digit
-      r'[A-Z<]{3}' // Nationality
-      r'[A-Z0-9<]{11}' // Optional data
-      r'[0-9A-Z<]', // Composite check digit
-    );
-
-    final matches = line2Pattern.allMatches(collapsedText);
-    for (final match in matches) {
-      final line2 = match.group(0)!;
-      final precedingText = collapsedText.substring(0, match.start);
-      final succeedingText = collapsedText.substring(match.end);
-
-      final codeMatches = RegExp(r'[IAC][A-Z<]').allMatches(precedingText);
-      if (codeMatches.isNotEmpty) {
-        var line1 = precedingText.substring(codeMatches.last.start);
-        if (line1.length < 30) {
-          line1 = line1.padRight(30, '<');
-        } else if (line1.length > 30) {
-          line1 = line1.substring(0, 30);
-        }
-
-        final nameMatches = RegExp(r'[A-Z]').allMatches(succeedingText);
-        if (nameMatches.isNotEmpty) {
-          var line3 = succeedingText.substring(nameMatches.first.start);
-          if (line3.length < 30) {
-            line3 = line3.padRight(30, '<');
-          } else if (line3.length > 30) {
-            line3 = line3.substring(0, 30);
-          }
-
-          final result = _parseTD1(line1, line2, line3);
-          if (result != null) return result;
-        }
-      }
-    }
-    return null;
-  }
-
-  static MrzResult? _parseTD1(String line1, String line2, String line3) {
-    // ── Line 1 ──
-    final documentCode = line1.substring(0, 2); // Pos 1–2
-    final issuingState = line1.substring(2, 5); // Pos 3–5
-    final rawDocNum = line1.substring(5, 14); // Pos 6–14
-    final docNumCheck = line1.substring(14, 15); // Pos 15
-    final rawOptional1 = line1.substring(15, 30); // Pos 16–30
-
-    // ── Line 2 ──
-    final rawDob = line2.substring(0, 6); // Pos 1–6
-    final dobCheck = line2.substring(6, 7); // Pos 7
-    final sex = line2.substring(7, 8); // Pos 8
-    final rawDoe = line2.substring(8, 14); // Pos 9–14
-    final doeCheck = line2.substring(14, 15); // Pos 15
-    final nationality = line2.substring(15, 18); // Pos 16–18
-    final rawOptional2 = line2.substring(18, 29); // Pos 19–29
-    final compositeCheck = line2.substring(29, 30); // Pos 30
-
-    // ── Line 3 ──
-    final nameField = line3.substring(0, 30); // Pos 1–30
-
-    // Sanitize numeric fields
-    final dob = _sanitizeNumber(rawDob);
-    final doe = _sanitizeNumber(rawDoe);
-
-    // Validate individual check digits
-    final validDocNum = _getValidValue(rawDocNum, _sanitizeNumber(docNumCheck));
-    if (validDocNum == null) return null;
-    if (!_validateChecksum(dob, _sanitizeNumber(dobCheck))) return null;
-    if (!_validateChecksum(doe, _sanitizeNumber(doeCheck))) return null;
-
-    // Composite check digit: L1:6–30, L2:1–7, L2:9–15, L2:19–29
-    // Note: L1 pos 6–30 is index 5..30, L2 pos 1–7 is index 0..7, etc.
-    final compositeData =
-        line1.substring(5, 30) + // L1 pos 6–30
-        line2.substring(0, 7) + // L2 pos 1–7
-        line2.substring(8, 15) + // L2 pos 9–15
-        line2.substring(18, 29); // L2 pos 19–29
-    final isCompositeValid = _validateChecksum(
-      compositeData,
-      _sanitizeNumber(compositeCheck),
-    );
-
-    final nameParts = _parseName(nameField);
-
-    return MrzResult(
-      format: MrzFormat.td1,
-      documentCode: _cleanFiller(documentCode),
-      issuingState: _cleanFiller(issuingState),
-      surname: nameParts[0],
-      givenNames: nameParts[1],
-      documentNumber: validDocNum.replaceAll('<', ''),
-      nationality: _cleanFiller(nationality),
-      dateOfBirth: dob,
-      sex: sex,
-      dateOfExpiry: doe,
-      optionalData1: _cleanFiller(rawOptional1),
-      optionalData2: _cleanFiller(rawOptional2),
-      isCompositeValid: isCompositeValid,
-      rawLines: [line1, line2, line3],
-    );
-  }
 
   // ──────────────────────────────────────────────
   // Shared utilities
