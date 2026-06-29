@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/mrz_result.dart';
+import '../utils/mrz_format_utils.dart';
 
 class MrzDetailsCard extends StatelessWidget {
   final MrzResult mrz;
@@ -48,19 +49,19 @@ class MrzDetailsCard extends StatelessWidget {
             const Divider(height: 24),
 
             // Common fields
-            _fieldRow('Document Code', mrz.documentCode),
-            _fieldRow('Issuing State', mrz.issuingState),
-            _fieldRow('Surname', mrz.surname),
-            _fieldRow('Given Names', mrz.givenNames),
-            _fieldRow('Document Number', mrz.documentNumber),
-            _fieldRow('Nationality', mrz.nationality),
-            _fieldRow('Date of Birth', mrz.dateOfBirth),
-            _fieldRow('Sex', mrz.sex),
-            _fieldRow('Date of Expiry', mrz.dateOfExpiry),
+            _fieldRow('Document Code', MrzFormatUtils.formatDocumentCode(mrz.documentCode)),
+            _fieldRow('Issuing State', MrzFormatUtils.formatCountry(mrz.issuingState)),
+            _fieldRow('Surname', MrzFormatUtils.formatName(mrz.surname)),
+            _fieldRow('Given Names', MrzFormatUtils.formatName(mrz.givenNames)),
+            _fieldRow('Document Number', MrzFormatUtils.cleanString(mrz.documentNumber)),
+            _fieldRow('Nationality', MrzFormatUtils.formatCountry(mrz.nationality)),
+            _fieldRow('Date of Birth', MrzFormatUtils.formatDate(mrz.dateOfBirth, isExpiry: false)),
+            _fieldRow('Sex', MrzFormatUtils.formatSex(mrz.sex)),
+            _fieldRow('Date of Expiry', MrzFormatUtils.formatDate(mrz.dateOfExpiry, isExpiry: true)),
 
             // Optional fields (only show if non-empty)
             if (mrz.personalNumber.isNotEmpty)
-              _fieldRow('Personal Number', mrz.personalNumber),
+              _fieldRow('Personal Number', MrzFormatUtils.cleanString(mrz.personalNumber)),
           ],
         ),
       ),
