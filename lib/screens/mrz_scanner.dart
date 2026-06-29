@@ -69,8 +69,13 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
       }
 
       final recognizedText = await _textRecognizer.processImage(inputImage);
-      final mrzData = MrzParser.parse(recognizedText.text);
+      
+      // Print raw OCR text to console for debugging
+      debugPrint('\n--- CAMERA OCR TEXT ---');
+      debugPrint(recognizedText.text);
+      debugPrint('-----------------------\n');
 
+      final mrzData = MrzParser.parse(recognizedText.text);
       if (mrzData != null) {
         _cameraController?.stopImageStream();
         widget.onParsed(mrzData);
