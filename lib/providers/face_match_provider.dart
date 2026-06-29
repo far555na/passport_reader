@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-import '../services/face_detector_service.dart';
-import '../services/face_inference_service.dart';
-import '../services/face_match_service.dart';
+import '../services/face_match/face_detector_service.dart';
+import '../services/face_match/face_inference_service.dart';
+import '../services/face_match/face_match_service.dart';
 import '../utils/image_preprocessor.dart';
 
 class FaceMatchState {
