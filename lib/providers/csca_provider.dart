@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/csca_data.dart';
-import '../services/csca_service.dart';
+import '../services/passive_auth/csca_service.dart';
 
 final cscaServiceProvider = Provider<CscaService>((ref) {
   return CscaService();
