@@ -57,8 +57,6 @@ class MrzParser {
 
     MrzResult? bestResult;
     int maxFillers = -1;
-    String? bestLine1;
-    String? bestLine2;
 
     for (final l2Match in line2Matches) {
       final line2 = l2Match.group(0)!;
@@ -98,24 +96,12 @@ class MrzParser {
           if (score > maxFillers) {
             maxFillers = score;
             bestResult = result;
-            bestLine1 = line1;
-            bestLine2 = line2;
           }
         }
       }
     }
 
-    if (bestResult != null) {
-      // ignore: avoid_print
-      print('\n--- SUCCESSFUL MRZ MATCH ---');
-      // ignore: avoid_print
-      print('Line 1: $bestLine1');
-      // ignore: avoid_print
-      print('Line 2: $bestLine2\n');
-      return bestResult;
-    }
-
-    return null;
+    return bestResult;
   }
 
   static MrzResult? _parseTD3(String line1, String line2) {
