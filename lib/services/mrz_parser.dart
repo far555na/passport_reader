@@ -148,19 +148,23 @@ class MrzParser {
     )) {
       return null;
     }
-    if (personalCheck != '<' &&
-        !MrzValidator.validateChecksum(
-          rawPersonal,
-          MrzValidator.sanitizeNumber(personalCheck),
-        )) {
-      return null;
+    String validPersonal = rawPersonal;
+    if (personalCheck != '<') {
+      final v = MrzValidator.getValidValue(
+        rawPersonal,
+        MrzValidator.sanitizeNumber(personalCheck),
+      );
+      if (v == null) return null;
+      validPersonal = v;
     }
 
     // Composite check digit: positions 1–10, 14–20, 22–43
     final compositeData =
-        line2.substring(0, 10) + // pos 1–10
-        line2.substring(13, 20) + // pos 14–20
-        line2.substring(21, 43); // pos 22–43
+        validDocNum + MrzValidator.sanitizeNumber(docNumCheck) + // pos 1–10
+        dob + MrzValidator.sanitizeNumber(dobCheck) + // pos 14–20
+        doe + MrzValidator.sanitizeNumber(doeCheck) + // pos 22–28
+        validPersonal + MrzValidator.sanitizeNumber(personalCheck); // pos 29–43
+    
     final isCompositeValid = MrzValidator.validateChecksum(
       compositeData,
       MrzValidator.sanitizeNumber(compositeCheck),
@@ -180,7 +184,7 @@ class MrzParser {
       dateOfBirth: dob,
       sex: sex,
       dateOfExpiry: doe,
-      personalNumber: _cleanFiller(rawPersonal),
+      personalNumber: _cleanFiller(validPersonal),
       isCompositeValid: isCompositeValid,
       rawLines: [line1, line2],
     );
