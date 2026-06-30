@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dmrtd/dmrtd.dart';
 import '../models/mrz_result.dart';
-import '../services/nfc_service.dart';
+import '../repositories/nfc_passport_repository.dart';
 import '../models/passive_auth_verification_result.dart';
 import 'csca_provider.dart';
 
@@ -56,7 +56,7 @@ class NfcState {
 }
 
 class NfcNotifier extends Notifier<NfcState> {
-  final NfcService _nfcService = NfcService();
+  final NfcPassportRepository _repository = NfcPassportRepository();
 
   @override
   NfcState build() {
@@ -70,7 +70,7 @@ class NfcNotifier extends Notifier<NfcState> {
       // Wait for the future to complete so we don't get null if it's still loading
       final cscaData = await ref.read(cscaIndexProvider.future);
       
-      final nfcData = await _nfcService.scanPassport(
+      final nfcData = await _repository.scanPassport(
         mrzResult: mrzResult,
         cscaData: cscaData,
         onProgress: (status, progress) {
