@@ -7,7 +7,7 @@ import '../models/data_groups.dart';
 import '../models/nfc_result.dart';
 import '../models/passive_auth_verification_result.dart';
 import '../utils/image_decoder.dart';
-import '../utils/mrz_date_utils.dart';
+import '../utils/mrz_format_utils.dart';
 import 'passive_auth/sod_parser.dart';
 import 'passive_auth/passive_authenticator.dart';
 
@@ -26,9 +26,9 @@ class PassportReaderService {
     final doe = mrzResult.dateOfExpiry;
 
     final bacKey = DBAKey(
-        docNum, MrzDateUtils.parse(dob), MrzDateUtils.parse(doe, isExpiry: true));
+        docNum, MrzFormatUtils.parseDate(dob), MrzFormatUtils.parseDate(doe, isExpiry: true));
     final paceKey = DBAKey(
-        docNum, MrzDateUtils.parse(dob), MrzDateUtils.parse(doe, isExpiry: true),
+        docNum, MrzFormatUtils.parseDate(dob), MrzFormatUtils.parseDate(doe, isExpiry: true),
         paceMode: true);
 
     try {
