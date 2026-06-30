@@ -1,12 +1,12 @@
 import 'dart:io' as io;
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-import 'face_detector_service.dart';
-import 'face_inference_service.dart';
-import '../../utils/image_preprocessor.dart';
+import '../services/face_detector_service.dart';
+import '../services/face_inference_service.dart';
+import '../utils/image_preprocessor.dart';
+import '../utils/face_match_utils.dart';
 
 class FaceMatchResult {
   final bool isMatch;
@@ -15,11 +15,16 @@ class FaceMatchResult {
   FaceMatchResult(this.isMatch, this.score);
 }
 
-class FaceMatchService {
+class FaceMatchRepository {
   final FaceDetectorService _detector;
   final FaceInferenceService _inference;
 
-  FaceMatchService(this._detector, this._inference);
+  FaceMatchRepository(this._detector, this._inference);
+
+  /// Initializes required ML models (like TFLite)
+  Future<void> initialize() async {
+    await _inference.initialize();
+  }
 
   /// Compares DG2 bytes with a selfie from camera path
   Future<FaceMatchResult> compareFaces(Uint8List dg2Bytes, String selfiePath) async {
@@ -52,46 +57,11 @@ class FaceMatchService {
     final selfieEmbedding = _inference.runInference(selfieTensor);
 
     // 6. Compare embeddings
-    final distance = calculateEuclideanDistance(dg2Embedding, selfieEmbedding);
+    final distance = FaceMatchUtils.calculateEuclideanDistance(dg2Embedding, selfieEmbedding);
     
     // Threshold for MobileFaceNet (usually < 1.0 for Euclidean)
     final bool isMatch = distance < 1.0;
 
     return FaceMatchResult(isMatch, distance);
-  }
-
-  /// Calculates the Euclidean distance between two embeddings (vectors).
-  /// A common threshold for MobileFaceNet is < 1.0 for a match.
-  static double calculateEuclideanDistance(List<double> embedding1, List<double> embedding2) {
-    if (embedding1.length != embedding2.length) {
-      throw Exception('Embeddings must have the same length');
-    }
-    double sum = 0.0;
-    for (int i = 0; i < embedding1.length; i++) {
-      double diff = embedding1[i] - embedding2[i];
-      sum += diff * diff;
-    }
-    return sqrt(sum);
-  }
-
-  /// Calculates the Cosine Similarity between two embeddings.
-  /// Result is between -1.0 and 1.0. Higher is more similar.
-  /// A common threshold for MobileFaceNet is > 0.4 for a match.
-  static double calculateCosineSimilarity(List<double> embedding1, List<double> embedding2) {
-    if (embedding1.length != embedding2.length) {
-      throw Exception('Embeddings must have the same length');
-    }
-    double dotProduct = 0.0;
-    double normA = 0.0;
-    double normB = 0.0;
-    for (int i = 0; i < embedding1.length; i++) {
-      dotProduct += embedding1[i] * embedding2[i];
-      normA += embedding1[i] * embedding1[i];
-      normB += embedding2[i] * embedding2[i];
-    }
-    
-    if (normA == 0.0 || normB == 0.0) return 0.0;
-    
-    return dotProduct / (sqrt(normA) * sqrt(normB));
   }
 }

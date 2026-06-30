@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../services/face_match/face_detector_service.dart';
-import '../services/face_match/face_inference_service.dart';
-import '../services/face_match/face_match_service.dart';
+import '../services/face_detector_service.dart';
+import '../services/face_inference_service.dart';
+import '../repositories/face_match_repository.dart';
 
 class FaceMatchState {
   final bool isLoading;
@@ -34,20 +34,18 @@ class FaceMatchState {
 }
 
 class FaceMatchNotifier extends Notifier<FaceMatchState> {
-  late final FaceMatchService _matchService;
-  late final FaceInferenceService _inference;
+  late final FaceMatchRepository _repository;
 
   @override
   FaceMatchState build() {
-    _matchService = ref.watch(faceMatchServiceProvider);
-    _inference = ref.watch(faceInferenceProvider);
+    _repository = ref.watch(faceMatchRepositoryProvider);
     _initInference();
     return FaceMatchState();
   }
 
   Future<void> _initInference() async {
     try {
-      await _inference.initialize();
+      await _repository.initialize();
     } catch (e) {
       state = state.copyWith(error: 'Failed to initialize face matching model.');
     }
@@ -58,7 +56,7 @@ class FaceMatchNotifier extends Notifier<FaceMatchState> {
     state = FaceMatchState(isLoading: true);
 
     try {
-      final result = await _matchService.compareFaces(dg2Bytes, selfiePath);
+      final result = await _repository.compareFaces(dg2Bytes, selfiePath);
 
       state = FaceMatchState(
         isLoading: false,
@@ -85,10 +83,10 @@ final faceInferenceProvider = Provider<FaceInferenceService>((ref) {
   return service;
 });
 
-final faceMatchServiceProvider = Provider<FaceMatchService>((ref) {
+final faceMatchRepositoryProvider = Provider<FaceMatchRepository>((ref) {
   final detector = ref.watch(faceDetectorProvider);
   final inference = ref.watch(faceInferenceProvider);
-  return FaceMatchService(detector, inference);
+  return FaceMatchRepository(detector, inference);
 });
 
 final faceMatchProvider = NotifierProvider<FaceMatchNotifier, FaceMatchState>(() {
