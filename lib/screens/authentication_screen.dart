@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'mrz_scanner.dart';
+import '../features/mrz_scanner/views/mrz_scanner_screen.dart';
 import 'nfc_scanner.dart';
-import '../providers/mrz_provider.dart';
-import '../widgets/mrz_details_card.dart';
-import '../widgets/manual_entry_dialog.dart';
+
+import '../features/mrz_scanner/widgets/mrz_details_card.dart';
+import '../features/mrz_scanner/widgets/manual_entry_dialog.dart';
+import '../features/mrz_scanner/view_models/mrz_state_view_model.dart';
 
 class AuthenticationScreen extends ConsumerWidget {
   const AuthenticationScreen({super.key});

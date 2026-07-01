@@ -1,22 +1,17 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
 import '../models/mrz_result.dart';
-import '../services/ocr_service.dart';
 import '../utils/mrz_parser.dart';
+import '../services/ocr_service.dart';
 
-// Provide the OcrService globally
-final ocrServiceProvider = Provider<OcrService>((ref) {
-  final service = OcrService();
-  ref.onDispose(() => service.dispose());
-  return service;
-});
+part 'mrz_scanner_repository.g.dart';
 
-// Provide the MrzScannerRepository
-final mrzScannerRepositoryProvider = Provider<MrzScannerRepository>((ref) {
+@Riverpod(keepAlive: true)
+MrzScannerRepository mrzScannerRepository(Ref ref) {
   final ocrService = ref.watch(ocrServiceProvider);
   return MrzScannerRepository(ocrService);
-});
+}
 
 class MrzScannerRepository {
   final OcrService _ocrService;

@@ -4,7 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/mrz_result.dart';
-import '../providers/mrz_scanner_provider.dart';
+import '../view_models/mrz_scanner_view_model.dart';
 
 class MrzScannerScreen extends ConsumerStatefulWidget {
   final Function(MrzResult) onParsed;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/nfc_provider.dart';
-import '../providers/mrz_provider.dart';
+import '../features/mrz_scanner/view_models/mrz_state_view_model.dart';
 import '../widgets/passport_details_card.dart';
 import '../widgets/data_match_card.dart';
 import '../widgets/chip_technical_details_card.dart';
@@ -34,7 +34,7 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
 
   @override
   void dispose() {
-    // Reset provider state when leaving the screen if needed, 
+    // Reset provider state when leaving the screen if needed,
     // or you can leave the data cached if you want it to persist.
     // For now, we'll let it stay. If you want to reset:
     // ref.read(nfcProvider.notifier).reset();
@@ -47,7 +47,9 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
     final mrzResult = ref.read(mrzProvider);
 
     if (mrzResult == null) {
-      return const Scaffold(body: Center(child: Text('Error: MRZ Data missing')));
+      return const Scaffold(
+        body: Center(child: Text('Error: MRZ Data missing')),
+      );
     }
 
     if (!nfcState.isScanning && nfcState.progress == 1.0) {
@@ -64,10 +66,7 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
                 dg1: nfcState.dg1,
               ),
               const SizedBox(height: 24),
-              DataMatchCard(
-                mrzResult: mrzResult,
-                dg1: nfcState.dg1,
-              ),
+              DataMatchCard(mrzResult: mrzResult, dg1: nfcState.dg1),
               const SizedBox(height: 24),
               ChipTechnicalDetailsCard(
                 dg2: nfcState.dg2,
@@ -85,7 +84,10 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
                     );
                   },
                   icon: const Icon(Icons.face),
-                  label: const Text('Match Face', style: TextStyle(fontSize: 18)),
+                  label: const Text(
+                    'Match Face',
+                    style: TextStyle(fontSize: 18),
+                  ),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: Colors.blue,
@@ -94,7 +96,8 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
                 ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                onPressed: () =>
+                    Navigator.of(context).popUntil((route) => route.isFirst),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:dmrtd/dmrtd.dart';
-import '../models/mrz_result.dart';
+import '../features/mrz_scanner/models/mrz_result.dart';
 
 class PassportDetailsCard extends StatelessWidget {
   final MrzResult mrzResult;

@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 import 'package:dmrtd/dmrtd.dart';
 
-import '../models/mrz_result.dart';
+import '../features/mrz_scanner/models/mrz_result.dart';
 import '../models/csca_data.dart';
 import '../models/data_groups.dart';
 import '../models/nfc_result.dart';
 import '../models/passive_auth_verification_result.dart';
 import '../utils/image_decoder.dart';
-import '../utils/mrz_format_utils.dart';
+import '../features/mrz_scanner/utils/mrz_format_utils.dart';
 import '../utils/passive_auth/sod_parser.dart';
 import '../utils/passive_auth/passive_authenticator.dart';
 import '../services/nfc_service.dart';

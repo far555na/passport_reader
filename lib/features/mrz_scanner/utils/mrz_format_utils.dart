@@ -1,4 +1,4 @@
-import 'country_codes.dart';
+import '../../../../utils/country_codes.dart';
 
 class MrzFormatUtils {
   static const List<String> _months = [

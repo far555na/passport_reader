@@ -1,4 +1,14 @@
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'ocr_service.g.dart';
+
+@Riverpod(keepAlive: true)
+OcrService ocrService(Ref ref) {
+  final service = OcrService();
+  ref.onDispose(() => service.dispose());
+  return service;
+}
 
 class OcrService {
   final TextRecognizer _textRecognizer;

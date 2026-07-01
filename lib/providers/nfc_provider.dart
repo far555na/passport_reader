@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dmrtd/dmrtd.dart';
-import '../models/mrz_result.dart';
+import '../features/mrz_scanner/models/mrz_result.dart';
 import '../repositories/nfc_passport_repository.dart';
 import '../models/passive_auth_verification_result.dart';
 import 'csca_provider.dart';
