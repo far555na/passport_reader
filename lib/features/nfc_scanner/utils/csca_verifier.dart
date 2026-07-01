@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:pointycastle/export.dart' as pc;
 
-import '../../models/verification_result.dart';
-import '../../models/parsed_sod_data.dart';
-import '../../models/csca_data.dart';
-import '../../utils/certificate_utils.dart';
+import '../models/verification_result.dart';
+import '../models/parsed_sod_data.dart';
+import '../models/csca_data.dart';
+import 'certificate_utils.dart';
 
 class CscaVerifier {
   /// Verifies the Document Signer Certificate against a trusted CSCA Master List.

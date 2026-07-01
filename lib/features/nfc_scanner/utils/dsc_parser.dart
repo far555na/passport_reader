@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:pointycastle/asn1.dart';
 import 'package:basic_utils/basic_utils.dart';
 
-import '../../models/parsed_dsc_data.dart';
-import '../../utils/oid_mapper.dart';
+import '../models/parsed_dsc_data.dart';
+import 'oid_mapper.dart';
 
 class DSCParser {
   /// Parses the raw bytes of the Document Signer Certificate (DSC)

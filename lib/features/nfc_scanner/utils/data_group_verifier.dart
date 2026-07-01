@@ -2,10 +2,10 @@ import 'dart:typed_data';
 import 'package:pointycastle/export.dart';
 import 'package:collection/collection.dart';
 
-import '../../models/verification_result.dart';
-import '../../models/parsed_sod_data.dart';
-import '../../models/data_groups.dart';
-import '../../utils/oid_mapper.dart';
+import '../models/verification_result.dart';
+import '../models/parsed_sod_data.dart';
+import '../models/data_groups.dart';
+import 'oid_mapper.dart';
 
 class DataGroupVerifier {
   /// Verifies the integrity of the Data Groups against the hashes in the SOD.

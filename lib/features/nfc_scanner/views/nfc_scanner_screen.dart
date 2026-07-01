@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/nfc_provider.dart';
-import '../features/mrz_scanner/view_models/mrz_state_view_model.dart';
+import '../view_models/nfc_scanner_view_model.dart';
+import '../../mrz_scanner/view_models/mrz_state_view_model.dart';
 import '../widgets/passport_details_card.dart';
 import '../widgets/data_match_card.dart';
 import '../widgets/chip_technical_details_card.dart';
-import 'face_match_screen.dart';
+import '../../../screens/face_match_screen.dart';
 
 class NfcScannerScreen extends ConsumerStatefulWidget {
   const NfcScannerScreen({super.key});
@@ -22,7 +22,7 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final mrzResult = ref.read(mrzProvider);
       if (mrzResult != null) {
-        ref.read(nfcProvider.notifier).startScan(mrzResult);
+        ref.read(nfcScannerViewModelProvider.notifier).startScan(mrzResult);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error: No MRZ data available')),
@@ -37,13 +37,13 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
     // Reset provider state when leaving the screen if needed,
     // or you can leave the data cached if you want it to persist.
     // For now, we'll let it stay. If you want to reset:
-    // ref.read(nfcProvider.notifier).reset();
+    // ref.read(nfcScannerViewModelProvider.notifier).reset();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final nfcState = ref.watch(nfcProvider);
+    final nfcState = ref.watch(nfcScannerViewModelProvider);
     final mrzResult = ref.read(mrzProvider);
 
     if (mrzResult == null) {

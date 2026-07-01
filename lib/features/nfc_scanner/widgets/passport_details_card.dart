@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:dmrtd/dmrtd.dart';
-import '../features/mrz_scanner/models/mrz_result.dart';
+import '../../mrz_scanner/models/mrz_result.dart';
+import '../../../core/utils/mrz_format_utils.dart';
 
 class PassportDetailsCard extends StatelessWidget {
   final MrzResult mrzResult;
@@ -15,13 +16,7 @@ class PassportDetailsCard extends StatelessWidget {
     this.dg1,
   });
 
-  String _formatDateYymmdd(DateTime? date) {
-    if (date == null) return "";
-    final yy = (date.year % 100).toString().padLeft(2, '0');
-    final mm = date.month.toString().padLeft(2, '0');
-    final dd = date.day.toString().padLeft(2, '0');
-    return '$yy$mm$dd';
-  }
+
 
   Widget _buildFieldLabel(String label) {
     return Text(
@@ -119,7 +114,7 @@ class PassportDetailsCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildFieldLabel('DATE OF BIRTH'),
-                                _buildFieldValue(dg1?.mrz.dateOfBirth != null ? _formatDateYymmdd(dg1!.mrz.dateOfBirth) : mrzResult.dateOfBirth),
+                                _buildFieldValue(dg1?.mrz.dateOfBirth != null ? MrzFormatUtils.formatDateToYymmdd(dg1!.mrz.dateOfBirth) : mrzResult.dateOfBirth),
                               ],
                             ),
                           ),
@@ -151,7 +146,7 @@ class PassportDetailsCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildFieldLabel('DATE OF EXPIRY'),
-                                _buildFieldValue(dg1?.mrz.dateOfExpiry != null ? _formatDateYymmdd(dg1!.mrz.dateOfExpiry) : mrzResult.dateOfExpiry),
+                                _buildFieldValue(dg1?.mrz.dateOfExpiry != null ? MrzFormatUtils.formatDateToYymmdd(dg1!.mrz.dateOfExpiry) : mrzResult.dateOfExpiry),
                               ],
                             ),
                           ),

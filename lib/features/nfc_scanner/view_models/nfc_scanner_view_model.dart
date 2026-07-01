@@ -1,11 +1,14 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:dmrtd/dmrtd.dart';
-import '../features/mrz_scanner/models/mrz_result.dart';
-import '../repositories/nfc_passport_repository.dart';
+import '../../mrz_scanner/models/mrz_result.dart';
+import '../repositories/nfc_scanner_repository.dart';
 import '../models/passive_auth_verification_result.dart';
-import 'csca_provider.dart';
+import 'csca_state_view_model.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'nfc_scanner_view_model.g.dart';
 
 class NfcState {
   final String statusMessage;
@@ -55,9 +58,10 @@ class NfcState {
   }
 }
 
-class NfcNotifier extends Notifier<NfcState> {
-  final NfcPassportRepository _repository = NfcPassportRepository();
 
+
+@riverpod
+class NfcScannerViewModel extends _$NfcScannerViewModel {
   @override
   NfcState build() {
     return NfcState.initial();
@@ -68,9 +72,10 @@ class NfcNotifier extends Notifier<NfcState> {
 
     try {
       // Wait for the future to complete so we don't get null if it's still loading
-      final cscaData = await ref.read(cscaIndexProvider.future);
+      final cscaData = await ref.read(cscaStateViewModelProvider.future);
       
-      final nfcData = await _repository.scanPassport(
+      final repository = ref.read(nfcScannerRepositoryProvider);
+      final nfcData = await repository.scanPassport(
         mrzResult: mrzResult,
         cscaData: cscaData,
         onProgress: (status, progress) {
@@ -98,7 +103,3 @@ class NfcNotifier extends Notifier<NfcState> {
     state = NfcState.initial();
   }
 }
-
-final nfcProvider = NotifierProvider<NfcNotifier, NfcState>(() {
-  return NfcNotifier();
-});

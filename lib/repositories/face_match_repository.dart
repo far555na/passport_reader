@@ -5,8 +5,8 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 import '../services/face_detector_service.dart';
 import '../services/face_inference_service.dart';
-import '../utils/image_preprocessor.dart';
-import '../utils/face_match_utils.dart';
+import '../core/utils/image_preprocessor.dart';
+import '../core/utils/face_match_utils.dart';
 
 class FaceMatchResult {
   final bool isMatch;

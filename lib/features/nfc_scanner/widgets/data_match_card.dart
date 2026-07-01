@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dmrtd/dmrtd.dart';
-import '../features/mrz_scanner/models/mrz_result.dart';
+import '../../mrz_scanner/models/mrz_result.dart';
+import '../../../core/utils/mrz_format_utils.dart';
 
 class DataMatchCard extends StatelessWidget {
   final MrzResult mrzResult;
@@ -12,13 +13,7 @@ class DataMatchCard extends StatelessWidget {
     this.dg1,
   });
 
-  String _formatDateYymmdd(DateTime? date) {
-    if (date == null) return "";
-    final yy = (date.year % 100).toString().padLeft(2, '0');
-    final mm = date.month.toString().padLeft(2, '0');
-    final dd = date.day.toString().padLeft(2, '0');
-    return '$yy$mm$dd';
-  }
+
 
   Widget _buildMatchRow(String field, String ocrValue, String? nfcValue) {
     final isMatch = ocrValue == nfcValue;
@@ -53,8 +48,8 @@ class DataMatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final nfc = dg1?.mrz;
 
-    final nfcDob = _formatDateYymmdd(nfc?.dateOfBirth);
-    final nfcDoe = _formatDateYymmdd(nfc?.dateOfExpiry);
+    final nfcDob = MrzFormatUtils.formatDateToYymmdd(nfc?.dateOfBirth);
+    final nfcDoe = MrzFormatUtils.formatDateToYymmdd(nfc?.dateOfExpiry);
 
     return Card(
       elevation: 2,

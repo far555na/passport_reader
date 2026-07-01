@@ -1,5 +1,12 @@
 import 'package:dmrtd/dmrtd.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+part 'nfc_service.g.dart';
+
+@Riverpod(keepAlive: true)
+NfcService nfcService(Ref ref) {
+  return NfcService();
+}
 class NfcService {
   final NfcProvider _nfcProvider = NfcProvider();
 

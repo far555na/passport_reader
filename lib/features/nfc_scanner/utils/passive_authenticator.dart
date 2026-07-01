@@ -1,8 +1,8 @@
 
-import '../../models/passive_auth_verification_result.dart';
-import '../../models/parsed_sod_data.dart';
-import '../../models/csca_data.dart';
-import '../../models/data_groups.dart';
+import '../models/passive_auth_verification_result.dart';
+import '../models/parsed_sod_data.dart';
+import '../models/csca_data.dart';
+import '../models/data_groups.dart';
 import 'data_group_verifier.dart';
 import 'signature_verifier.dart';
 import 'csca_verifier.dart';

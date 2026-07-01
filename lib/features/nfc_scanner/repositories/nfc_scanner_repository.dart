@@ -1,19 +1,31 @@
 import 'dart:typed_data';
 import 'package:dmrtd/dmrtd.dart';
 
-import '../features/mrz_scanner/models/mrz_result.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../mrz_scanner/models/mrz_result.dart';
 import '../models/csca_data.dart';
 import '../models/data_groups.dart';
 import '../models/nfc_result.dart';
 import '../models/passive_auth_verification_result.dart';
-import '../utils/image_decoder.dart';
-import '../features/mrz_scanner/utils/mrz_format_utils.dart';
-import '../utils/passive_auth/sod_parser.dart';
-import '../utils/passive_auth/passive_authenticator.dart';
+import '../../../core/utils/image_decoder.dart';
+import '../../../core/utils/mrz_format_utils.dart';
+import '../utils/sod_parser.dart';
+import '../utils/passive_authenticator.dart';
 import '../services/nfc_service.dart';
 
-class NfcPassportRepository {
-  final NfcService _nfcService = NfcService();
+part 'nfc_scanner_repository.g.dart';
+
+@Riverpod(keepAlive: true)
+NfcScannerRepository nfcScannerRepository(Ref ref) {
+  final nfcService = ref.watch(nfcServiceProvider);
+  return NfcScannerRepository(nfcService);
+}
+
+class NfcScannerRepository {
+  final NfcService _nfcService;
+
+  NfcScannerRepository(this._nfcService);
 
   /// Orchestrates connecting to the NFC, authenticating, and reading data groups.
   Future<NfcResult> scanPassport({

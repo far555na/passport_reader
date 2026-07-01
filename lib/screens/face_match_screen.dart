@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/face_match_provider.dart';
-import '../providers/nfc_provider.dart';
+import '../features/nfc_scanner/view_models/nfc_scanner_view_model.dart';
 
 class FaceMatchScreen extends ConsumerStatefulWidget {
   const FaceMatchScreen({super.key});
@@ -59,7 +59,7 @@ class _FaceMatchScreenState extends ConsumerState<FaceMatchScreen> {
 
     try {
       final XFile selfieFile = await _cameraController!.takePicture();
-      final dg2Image = ref.read(nfcProvider).faceImage;
+      final dg2Image = ref.read(nfcScannerViewModelProvider).faceImage;
       
       if (dg2Image == null) {
         if (!mounted) return;

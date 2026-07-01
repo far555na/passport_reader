@@ -1,8 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../models/csca_data.dart';
+import '../models/csca_data.dart';
+
+part 'csca_service.g.dart';
+
+@Riverpod(keepAlive: true)
+CscaService cscaService(Ref ref) {
+  return CscaService();
+}
 
 class CscaService {
   /// Loads and parses the CSCA certificates from the asset bundle.

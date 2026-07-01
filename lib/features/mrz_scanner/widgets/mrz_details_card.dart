@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/mrz_result.dart';
-import '../utils/mrz_format_utils.dart';
+import '../../../core/utils/mrz_format_utils.dart';
 
 class MrzDetailsCard extends StatelessWidget {
   final MrzResult mrz;

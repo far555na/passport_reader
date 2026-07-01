@@ -1,9 +1,9 @@
 import 'package:basic_utils/basic_utils.dart';
 import 'package:pointycastle/export.dart' as pc;
-import '../../models/verification_result.dart';
-import '../../models/parsed_sod_data.dart';
-import '../../utils/certificate_utils.dart';
-import '../../utils/oid_mapper.dart';
+import '../models/verification_result.dart';
+import '../models/parsed_sod_data.dart';
+import 'certificate_utils.dart';
+import 'oid_mapper.dart';
 
 class SignatureVerifier {
   /// Verifies the digital signature of the EF.SOD using the Document Signer Certificate.

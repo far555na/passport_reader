@@ -1,10 +1,19 @@
-import '../../../../utils/country_codes.dart';
+import 'country_codes.dart';
 
 class MrzFormatUtils {
   static const List<String> _months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
+
+  /// Formats a DateTime back into a YYMMDD string.
+  static String formatDateToYymmdd(DateTime? date) {
+    if (date == null) return "";
+    final yy = (date.year % 100).toString().padLeft(2, '0');
+    final mm = date.month.toString().padLeft(2, '0');
+    final dd = date.day.toString().padLeft(2, '0');
+    return '$yy$mm$dd';
+  }
 
   /// Formats a YYMMDD string to `dd MMM yyyy`.
   /// Uses century inference based on whether it is an expiry date or birth date.
