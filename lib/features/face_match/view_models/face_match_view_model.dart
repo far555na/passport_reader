@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../services/face_detector_service.dart';
-import '../services/face_inference_service.dart';
 import '../repositories/face_match_repository.dart';
+
+part 'face_match_view_model.g.dart';
 
 class FaceMatchState {
   final bool isLoading;
@@ -33,7 +33,8 @@ class FaceMatchState {
   }
 }
 
-class FaceMatchNotifier extends Notifier<FaceMatchState> {
+@riverpod
+class FaceMatchViewModel extends _$FaceMatchViewModel {
   late final FaceMatchRepository _repository;
 
   @override
@@ -70,25 +71,3 @@ class FaceMatchNotifier extends Notifier<FaceMatchState> {
     }
   }
 }
-
-final faceDetectorProvider = Provider<FaceDetectorService>((ref) {
-  final service = FaceDetectorService();
-  ref.onDispose(() => service.dispose());
-  return service;
-});
-
-final faceInferenceProvider = Provider<FaceInferenceService>((ref) {
-  final service = FaceInferenceService();
-  ref.onDispose(() => service.dispose());
-  return service;
-});
-
-final faceMatchRepositoryProvider = Provider<FaceMatchRepository>((ref) {
-  final detector = ref.watch(faceDetectorProvider);
-  final inference = ref.watch(faceInferenceProvider);
-  return FaceMatchRepository(detector, inference);
-});
-
-final faceMatchProvider = NotifierProvider<FaceMatchNotifier, FaceMatchState>(() {
-  return FaceMatchNotifier();
-});

@@ -1,6 +1,16 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'face_detector_service.g.dart';
+
+@Riverpod(keepAlive: true)
+FaceDetectorService faceDetectorService(Ref ref) {
+  final service = FaceDetectorService();
+  ref.onDispose(() => service.dispose());
+  return service;
+}
 
 class FaceDetectorService {
   final FaceDetector _faceDetector;

@@ -2,17 +2,21 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../services/face_detector_service.dart';
 import '../services/face_inference_service.dart';
-import '../core/utils/image_preprocessor.dart';
-import '../core/utils/face_match_utils.dart';
+import '../../../core/utils/image_preprocessor.dart';
+import '../utils/face_match_utils.dart';
+import '../models/face_match_result.dart';
 
-class FaceMatchResult {
-  final bool isMatch;
-  final double score;
+part 'face_match_repository.g.dart';
 
-  FaceMatchResult(this.isMatch, this.score);
+@Riverpod(keepAlive: true)
+FaceMatchRepository faceMatchRepository(Ref ref) {
+  final detector = ref.watch(faceDetectorServiceProvider);
+  final inference = ref.watch(faceInferenceServiceProvider);
+  return FaceMatchRepository(detector, inference);
 }
 
 class FaceMatchRepository {

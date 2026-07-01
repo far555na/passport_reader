@@ -5,7 +5,7 @@ import '../../mrz_scanner/view_models/mrz_state_view_model.dart';
 import '../widgets/passport_details_card.dart';
 import '../widgets/data_match_card.dart';
 import '../widgets/chip_technical_details_card.dart';
-import '../../../screens/face_match_screen.dart';
+import '../../face_match/views/face_match_screen.dart';
 
 class NfcScannerScreen extends ConsumerStatefulWidget {
   const NfcScannerScreen({super.key});
@@ -79,7 +79,9 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const FaceMatchScreen(),
+                        builder: (context) => FaceMatchScreen(
+                          dg2Image: nfcState.faceImage!,
+                        ),
                       ),
                     );
                   },

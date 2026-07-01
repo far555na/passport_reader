@@ -1,11 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/face_match_provider.dart';
-import '../features/nfc_scanner/view_models/nfc_scanner_view_model.dart';
+import '../view_models/face_match_view_model.dart';
 
 class FaceMatchScreen extends ConsumerStatefulWidget {
-  const FaceMatchScreen({super.key});
+  final Uint8List dg2Image;
+  
+  const FaceMatchScreen({super.key, required this.dg2Image});
 
   @override
   ConsumerState<FaceMatchScreen> createState() => _FaceMatchScreenState();
@@ -59,17 +62,9 @@ class _FaceMatchScreenState extends ConsumerState<FaceMatchScreen> {
 
     try {
       final XFile selfieFile = await _cameraController!.takePicture();
-      final dg2Image = ref.read(nfcScannerViewModelProvider).faceImage;
+      final dg2Image = widget.dg2Image;
       
-      if (dg2Image == null) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No passport image available to compare.')),
-        );
-        return;
-      }
-
-      await ref.read(faceMatchProvider.notifier).compareFaces(dg2Image, selfieFile.path);
+      await ref.read(faceMatchViewModelProvider.notifier).compareFaces(dg2Image, selfieFile.path);
 
     } catch (e) {
       debugPrint('Error taking picture: $e');
@@ -78,7 +73,7 @@ class _FaceMatchScreenState extends ConsumerState<FaceMatchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final matchState = ref.watch(faceMatchProvider);
+    final matchState = ref.watch(faceMatchViewModelProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Face Verification')),

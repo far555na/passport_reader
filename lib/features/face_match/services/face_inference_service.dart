@@ -1,5 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'face_inference_service.g.dart';
+
+@Riverpod(keepAlive: true)
+FaceInferenceService faceInferenceService(Ref ref) {
+  final service = FaceInferenceService();
+  ref.onDispose(() => service.dispose());
+  return service;
+}
 
 class FaceInferenceService {
   Interpreter? _interpreter;
