@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'screens/authentication_screen.dart';
+import 'features/mrz_scanner/views/mrz_result_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: PassportReaderApp()));
@@ -17,7 +17,7 @@ class PassportReaderApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const AuthenticationScreen(),
+      home: const MrzResultScreen(),
     );
   }
 }
