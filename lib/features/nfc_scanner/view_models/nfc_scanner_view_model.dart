@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 
 import 'package:dmrtd/dmrtd.dart';
@@ -14,6 +13,7 @@ class NfcState {
   final String statusMessage;
   final double progress;
   final bool isScanning;
+  final bool hasError;
   final Uint8List? faceImage;
   final EfDG1? dg1;
   final EfDG2? dg2;
@@ -23,6 +23,7 @@ class NfcState {
     required this.statusMessage,
     required this.progress,
     required this.isScanning,
+    this.hasError = false,
     this.faceImage,
     this.dg1,
     this.dg2,
@@ -33,6 +34,7 @@ class NfcState {
     String? statusMessage,
     double? progress,
     bool? isScanning,
+    bool? hasError,
     Uint8List? faceImage,
     EfDG1? dg1,
     EfDG2? dg2,
@@ -42,6 +44,7 @@ class NfcState {
       statusMessage: statusMessage ?? this.statusMessage,
       progress: progress ?? this.progress,
       isScanning: isScanning ?? this.isScanning,
+      hasError: hasError ?? this.hasError,
       faceImage: faceImage ?? this.faceImage,
       dg1: dg1 ?? this.dg1,
       dg2: dg2 ?? this.dg2,
@@ -54,6 +57,7 @@ class NfcState {
       statusMessage: 'Hold your phone against the passport chip.',
       progress: 0.0,
       isScanning: false,
+      hasError: false,
     );
   }
 }
@@ -68,16 +72,15 @@ class NfcScannerViewModel extends _$NfcScannerViewModel {
   }
 
   Future<void> startScan(MrzResult mrzResult) async {
-    state = state.copyWith(isScanning: true, progress: 0.0);
+    state = state.copyWith(isScanning: true, hasError: false, progress: 0.0);
 
     try {
-      // Wait for the future to complete so we don't get null if it's still loading
-      final cscaData = await ref.read(cscaStateViewModelProvider.future);
+      final cscaDataFuture = ref.read(cscaStateViewModelProvider.future);
       
       final repository = ref.read(nfcScannerRepositoryProvider);
       final nfcData = await repository.scanPassport(
         mrzResult: mrzResult,
-        cscaData: cscaData,
+        cscaDataFuture: cscaDataFuture,
         onProgress: (status, progress) {
           state = state.copyWith(statusMessage: status, progress: progress);
         },
@@ -94,6 +97,7 @@ class NfcScannerViewModel extends _$NfcScannerViewModel {
       state = state.copyWith(
         statusMessage: 'Error: $e',
         isScanning: false,
+        hasError: true,
         progress: 0.0,
       );
     }

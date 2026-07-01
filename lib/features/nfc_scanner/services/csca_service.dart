@@ -17,15 +17,19 @@ class CscaService {
   Future<CscaData> loadCscaData() async {
     try {
       final jsonString = await rootBundle.loadString('assets/csca_index.json');
-      final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-      final map = jsonMap.map((key, value) {
-        final list = (value as List).map((e) => e.toString()).toList();
-        return MapEntry(key, list);
-      });
+      final map = await compute(_parseCscaIndex, jsonString);
       return CscaData(map);
     } catch (e) {
       debugPrint('Error loading CSCA index: $e');
       return CscaData({});
     }
   }
+}
+
+Map<String, List<String>> _parseCscaIndex(String jsonString) {
+  final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+  return jsonMap.map((key, value) {
+    final list = (value as List).map((e) => e.toString()).toList();
+    return MapEntry(key, list);
+  });
 }

@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:dmrtd/dmrtd.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -30,7 +30,7 @@ class NfcScannerRepository {
   /// Orchestrates connecting to the NFC, authenticating, and reading data groups.
   Future<NfcResult> scanPassport({
     required MrzResult mrzResult,
-    required CscaData cscaData,
+    required Future<CscaData> cscaDataFuture,
     required Function(String status, double progress) onProgress,
   }) async {
     bool hasError = false;
@@ -38,6 +38,9 @@ class NfcScannerRepository {
     try {
       // 1. Connect to Hardware via Service
       final passport = await _nfcService.connect(onProgress: onProgress);
+
+      // Give the passport chip a moment to harvest RF power and stabilize
+      await Future.delayed(const Duration(milliseconds: 500));
 
       // 2. Perform BAC/PACE Authentication
       onProgress('Authenticating (BAC/PACE)...', 0.3);
@@ -55,10 +58,12 @@ class NfcScannerRepository {
         final efCardAccess = await passport.readEfCardAccess();
         await passport.startSessionPACE(paceKey, efCardAccess);
       } catch (e) {
-        if (e.toString().contains('Tag was lost') ||
-            e.toString().contains('TagLostException')) {
+        final errorStr = e.toString();
+        if (errorStr.contains('Tag was lost') ||
+            errorStr.contains('TagLostException') ||
+            errorStr.contains('Communication error')) {
           throw Exception(
-              'NFC connection lost. Please hold the phone steadily against the passport and try again.');
+              'NFC connection lost. Please hold the phone steadily against the passport and try again without moving.');
         }
         await passport.startSession(bacKey);
       }
@@ -73,6 +78,9 @@ class NfcScannerRepository {
       // 4. Perform Passive Authentication (Domain Rules)
       PassiveAuthVerificationResult? paVerification;
       try {
+        onProgress('Verifying Passport Authenticity...', 0.8);
+        final cscaData = await cscaDataFuture;
+
         final parsedSod = SODParser.parseSOD(sod.toBytes());
         var dataGroups = DataGroups({
           1: dg1.toBytes(),
@@ -81,7 +89,7 @@ class NfcScannerRepository {
         paVerification =
             PassiveAuthenticator.verify(parsedSod, dataGroups, cscaData);
       } catch (e) {
-        // Handle passive authentication error silently for now
+        // Silently ignore passive auth errors for now
       }
 
       // 5. Extract Image

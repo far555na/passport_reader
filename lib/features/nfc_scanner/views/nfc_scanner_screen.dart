@@ -133,6 +133,19 @@ class _NfcScannerScreenState extends ConsumerState<NfcScannerScreen> {
               const SizedBox(height: 24),
               if (nfcState.isScanning)
                 LinearProgressIndicator(value: nfcState.progress),
+              if (nfcState.hasError) ...[
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.read(nfcScannerViewModelProvider.notifier).startScan(mrzResult);
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry Scan', style: TextStyle(fontSize: 16)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
